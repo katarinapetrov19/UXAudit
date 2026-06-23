@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>UXCheck Audit</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --critical: #ef4444;
+      --major: #f59e0b;
+      --minor: #eab308;
+      --info: #3b82f6;
+      --border: #e2e8f0;
+    }
+
+    body {
+      width: 400px;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+    }
+
+    .header {
+      background-color: var(--card-bg);
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .container {
+      padding: 16px;
+    }
+
+    .button {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      margin-bottom: 16px;
+    }
+
+    .button:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .button:disabled {
+      background-color: var(--text-muted);
+      cursor: not-allowed;
+    }
+
+    #results {
+      max-height: 450px;
+      overflow-y: auto;
+    }
+
+    .issue-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+
+    .issue-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    }
+
+    .issue-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .severity-badge {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-right: 8px;
+      color: white;
+    }
+
+    .severity-badge.Critical { background-color: var(--critical); }
+    .severity-badge.Major { background-color: var(--major); }
+    .severity-badge.Minor { background-color: var(--minor); }
+    .severity-badge.Info { background-color: var(--info); }
+
+    .issue-type {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .issue-message {
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+
+    .issue-details {
+      display: none;
+      font-size: 12px;
+      border-top: 1px solid var(--border);
+      padding-top: 8px;
+      margin-top: 8px;
+    }
+
+    .issue-card.expanded .issue-details {
+      display: block;
+    }
+
+    .detail-item {
+      margin-bottom: 4px;
+    }
+
+    .detail-label {
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .issue-selector {
+      font-family: monospace;
+      background: #f1f5f9;
+      padding: 2px 4px;
+      border-radius: 4px;
+      color: #475569;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 8px;
+      background: var(--card-bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .stat-value {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .stat-label {
+      font-size: 9px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+    }
+
+    .loader {
+      display: none;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>UXCheck Audit</h1>
+    <div id="version" style="font-size: 10px; color: var(--text-muted)">v0.2.0</div>
+  </div>
+  
+  <div class="container">
+    <button id="runAudit" class="button">Scan Current Page</button>
+    
+    <div id="loader" class="loader">
+      Scanning page...
+    </div>
+
+    <div id="stats" class="stats" style="display: none;">
+      <div class="stat-item">
+        <div id="critical-count" class="stat-value" style="color: var(--critical)">0</div>
+        <div class="stat-label">🔴 Crit</div>
+      </div>
+      <div class="stat-item">
+        <div id="major-count" class="stat-value" style="color: var(--major)">0</div>
+        <div class="stat-label">🟠 Maj</div>
+      </div>
+      <div class="stat-item">
+        <div id="minor-count" class="stat-value" style="color: var(--minor)">0</div>
+        <div class="stat-label">🟡 Min</div>
+      </div>
+      <div class="stat-item">
+        <div id="info-count" class="stat-value" style="color: var(--info)">0</div>
+        <div class="stat-label">🔵 Info</div>
+      </div>
+    </div>
+
+    <div id="export-actions" class="stats" style="display: none; grid-template-columns: 1fr 1fr;">
+      <button id="exportPDF" class="button" style="margin-bottom: 0; background-color: var(--card-bg); color: var(--text); border: 1px solid var(--border); position: relative;">📄 PDF <span style="font-size: 8px; background: var(--primary); color: white; padding: 1px 3px; border-radius: 3px; vertical-align: middle; margin-left: 4px;">PRO</span></button>
+      <button id="exportCSV" class="button" style="margin-bottom: 0; background-color: var(--card-bg); color: var(--text); border: 1px solid var(--border); position: relative;">📊 CSV <span style="font-size: 8px; background: var(--primary); color: white; padding: 1px 3px; border-radius: 3px; vertical-align: middle; margin-left: 4px;">PRO</span></button>
+    </div>
+
+    <div id="results">
+      <div class="empty-state">
+        Click the button above to start a UX audit on this page.
+      </div>
+    </div>
+  </div>
+  <script src="report.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
