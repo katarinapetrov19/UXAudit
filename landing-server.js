@@ -3,7 +3,7 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.static(path.resolve(__dirname, '..', '..', 'landing')));
+app.use(express.static(path.resolve(__dirname, 'landing')));
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
