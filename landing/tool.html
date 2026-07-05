@@ -160,7 +160,10 @@
             emptyState.classList.add('hidden');
 
             try {
-                const res = await fetch('/api/webaudit', {
+                const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                    ? '/api/webaudit'
+                    : 'https://backend-production-834fb.up.railway.app/api/webaudit';
+                const res = await fetch(API, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ url })
