@@ -41,6 +41,15 @@ async function runAudit() {
   // 6. Heuristics
   allIssues = allIssues.concat(engine.checkHeuristics(document));
 
+  // 7. Typography
+  allIssues = allIssues.concat(engine.checkTypography(document));
+
+  // 8. Visual Hierarchy
+  allIssues = allIssues.concat(engine.checkHierarchy(document));
+
+  // 9. Responsive Design
+  allIssues = allIssues.concat(engine.checkResponsive(document));
+
   // Sort by severity: Critical > Major > Minor > Info
   const severityOrder = { 'Critical': 0, 'Major': 1, 'Minor': 2, 'Info': 3 };
   allIssues.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);

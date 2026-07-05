@@ -4,32 +4,37 @@
   <meta charset="UTF-8">
   <title>UXCheck Audit</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap');
+
     :root {
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --text: #1e293b;
-      --text-muted: #64748b;
-      --critical: #ef4444;
-      --major: #f59e0b;
-      --minor: #eab308;
-      --info: #3b82f6;
-      --border: #e2e8f0;
+      --bg: #F2F1ED;
+      --card-bg: rgba(255,255,255,0.7);
+      --card-border: rgba(0,0,0,0.08);
+      --text: #0a0a0a;
+      --text-muted: #737373;
+      --critical: #dc2626;
+      --major: #d97706;
+      --minor: #ca8a04;
+      --info: #2563eb;
+      --primary: #0a0a0a;
+      --primary-hover: #262626;
+      --border: rgba(0,0,0,0.08);
     }
 
     body {
       width: 400px;
       margin: 0;
       padding: 0;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background-color: var(--bg);
       color: var(--text);
+      -webkit-font-smoothing: antialiased;
     }
 
     .header {
-      background-color: var(--card-bg);
-      padding: 16px;
+      background-color: rgba(242,241,237,0.85);
+      backdrop-filter: blur(8px);
+      padding: 12px 16px;
       border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
@@ -41,9 +46,10 @@
 
     .header h1 {
       margin: 0;
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--primary);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.01em;
     }
 
     .container {
@@ -53,16 +59,18 @@
     .button {
       display: block;
       width: 100%;
-      padding: 12px;
+      padding: 10px 16px;
       background-color: var(--primary);
       color: white;
       border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 14px;
+      border-radius: 999px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 13px;
       cursor: pointer;
-      transition: background-color 0.2s;
+      transition: background-color 0.15s;
       margin-bottom: 16px;
+      box-sizing: border-box;
     }
 
     .button:hover {
@@ -70,7 +78,7 @@
     }
 
     .button:disabled {
-      background-color: var(--text-muted);
+      background-color: #a3a3a3;
       cursor: not-allowed;
     }
 
@@ -81,17 +89,16 @@
 
     .issue-card {
       background-color: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
       padding: 12px;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
       cursor: pointer;
-      transition: transform 0.1s;
+      transition: background-color 0.15s;
     }
 
     .issue-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+      background-color: #fff;
     }
 
     .issue-header {
@@ -102,22 +109,23 @@
 
     .severity-badge {
       font-size: 10px;
-      font-weight: 700;
+      font-weight: 600;
       text-transform: uppercase;
-      padding: 2px 6px;
-      border-radius: 4px;
-      margin-right: 8px;
+      letter-spacing: 0.03em;
+      padding: 2px 7px;
+      border-radius: 999px;
+      margin-right: 6px;
       color: white;
     }
 
     .severity-badge.Critical { background-color: var(--critical); }
     .severity-badge.Major { background-color: var(--major); }
     .severity-badge.Minor { background-color: var(--minor); }
-    .severity-badge.Info { background-color: var(--info); }
+    .severity-badge.Info { background-color: #6b7280; color: white; }
 
     .issue-type {
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 500;
       color: var(--text-muted);
     }
 
@@ -166,21 +174,23 @@
 
     .stat-item {
       text-align: center;
-      padding: 8px;
+      padding: 8px 4px;
       background: var(--card-bg);
-      border-radius: 8px;
-      border: 1px solid var(--border);
+      border-radius: 14px;
+      border: 1px solid var(--card-border);
     }
 
     .stat-value {
-      font-size: 16px;
-      font-weight: 700;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
     }
 
     .stat-label {
       font-size: 9px;
       color: var(--text-muted);
       text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
 
     .empty-state {
@@ -198,8 +208,8 @@
 </head>
 <body>
   <div class="header">
-    <h1>UXCheck Audit</h1>
-    <div id="version" style="font-size: 10px; color: var(--text-muted)">v0.2.0</div>
+    <h1>UXCheck</h1>
+    <div id="version" style="font-size: 10px; color: var(--text-muted); letter-spacing: 0.02em;">v0.3.0</div>
   </div>
   
   <div class="container">
@@ -212,25 +222,25 @@
     <div id="stats" class="stats" style="display: none;">
       <div class="stat-item">
         <div id="critical-count" class="stat-value" style="color: var(--critical)">0</div>
-        <div class="stat-label">🔴 Crit</div>
+        <div class="stat-label">Critical</div>
       </div>
       <div class="stat-item">
         <div id="major-count" class="stat-value" style="color: var(--major)">0</div>
-        <div class="stat-label">🟠 Maj</div>
+        <div class="stat-label">Major</div>
       </div>
       <div class="stat-item">
         <div id="minor-count" class="stat-value" style="color: var(--minor)">0</div>
-        <div class="stat-label">🟡 Min</div>
+        <div class="stat-label">Minor</div>
       </div>
       <div class="stat-item">
-        <div id="info-count" class="stat-value" style="color: var(--info)">0</div>
-        <div class="stat-label">🔵 Info</div>
+        <div id="info-count" class="stat-value" style="color: #6b7280">0</div>
+        <div class="stat-label">Info</div>
       </div>
     </div>
 
     <div id="export-actions" class="stats" style="display: none; grid-template-columns: 1fr 1fr;">
-      <button id="exportPDF" class="button" style="margin-bottom: 0; background-color: var(--card-bg); color: var(--text); border: 1px solid var(--border); position: relative;">📄 PDF <span style="font-size: 8px; background: var(--primary); color: white; padding: 1px 3px; border-radius: 3px; vertical-align: middle; margin-left: 4px;">PRO</span></button>
-      <button id="exportCSV" class="button" style="margin-bottom: 0; background-color: var(--card-bg); color: var(--text); border: 1px solid var(--border); position: relative;">📊 CSV <span style="font-size: 8px; background: var(--primary); color: white; padding: 1px 3px; border-radius: 3px; vertical-align: middle; margin-left: 4px;">PRO</span></button>
+      <button id="exportPDF" class="button" style="margin-bottom: 0; background-color: var(--card-bg); color: var(--text); border: 1px solid var(--card-border);">Export PDF <span style="font-size: 8px; background: var(--primary); color: white; padding: 1px 5px; border-radius: 999px; vertical-align: middle; margin-left: 4px; font-weight: 600;">PRO</span></button>
+      <button id="exportCSV" class="button" style="margin-bottom: 0; background-color: var(--card-bg); color: var(--text); border: 1px solid var(--card-border);">Export CSV <span style="font-size: 8px; background: var(--primary); color: white; padding: 1px 5px; border-radius: 999px; vertical-align: middle; margin-left: 4px; font-weight: 600;">PRO</span></button>
     </div>
 
     <div id="results">

@@ -56,7 +56,7 @@ chrome.runtime.onMessage.addListener((message) => {
     severities.forEach(sev => {
       const sevIssues = currentIssues.filter(i => i.severity === sev);
       if (sevIssues.length > 0) {
-        html += `<div style="margin: 16px 0 8px 0; font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 4px;">${sev} Issues (${sevIssues.length})</div>`;
+        html += `<div style="margin: 16px 0 8px 0; font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--border); padding-bottom: 6px;">${sev} &nbsp;·&nbsp; ${sevIssues.length}</div>`;
         html += sevIssues.map((issue, index) => `
           <div class="issue-card" data-severity="${sev}" data-index="${index}">
             <div class="issue-header">

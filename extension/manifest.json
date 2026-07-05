@@ -37,6 +37,9 @@
         "engine/aria.js",
         "engine/keyboard.js",
         "engine/heuristics.js",
+        "engine/typography.js",
+        "engine/hierarchy.js",
+        "engine/responsive.js",
         "content_script.js"
       ]
     }
