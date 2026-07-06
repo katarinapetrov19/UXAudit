@@ -2,8 +2,9 @@
  * Visual design checks — spacing, consistency, motion, images.
  */
 window.UXCheckEngine = window.UXCheckEngine || {};
-window.UXCheckEngine.checkVisual = (doc) => {
+window.UXCheckEngine.checkVisual = async (doc) => {
   const issues = [];
+  const yield_ = () => new Promise(r => setTimeout(r, 0));
 
   function getSelector(el) {
     if (el.id) return '#' + el.id;
@@ -27,8 +28,8 @@ window.UXCheckEngine.checkVisual = (doc) => {
   }
 
   // ── 1. Spacing off-grid ───────────────────────────────────────────────────
-  const spacingEls = Array.from(doc.querySelectorAll('section, article, main, header, footer, div, p'))
-    .filter(isVisible).slice(0, 80);
+  const spacingEls = Array.from(doc.querySelectorAll('section, article, main, header, footer, p'))
+    .filter(isVisible).slice(0, 60);
 
   let offGridCount = 0, totalSpacing = 0;
   spacingEls.forEach(el => {
@@ -54,6 +55,7 @@ window.UXCheckEngine.checkVisual = (doc) => {
     });
   }
 
+  await yield_();
   // ── 2. Cramped containers (padding < 8px) ────────────────────────────────
   const containers = Array.from(doc.querySelectorAll('section, article, main, aside, [class*="card"], [class*="panel"]'))
     .filter(isVisible).slice(0, 60);
@@ -77,6 +79,7 @@ window.UXCheckEngine.checkVisual = (doc) => {
     });
   }
 
+  await yield_();
   // ── 3. Text containers with no max-width ─────────────────────────────────
   const textBlocks = Array.from(doc.querySelectorAll('p, article, [class*="content"], [class*="body"], [class*="prose"]'))
     .filter(isVisible).slice(0, 50);
@@ -103,6 +106,7 @@ window.UXCheckEngine.checkVisual = (doc) => {
     });
   }
 
+  await yield_();
   // ── 4. Too many distinct border-radius values ─────────────────────────────
   const radiusEls = Array.from(doc.querySelectorAll('button, a, input, [class*="card"], [class*="badge"], [class*="chip"], [class*="tag"], img, div'))
     .filter(isVisible).slice(0, 100);
@@ -125,6 +129,7 @@ window.UXCheckEngine.checkVisual = (doc) => {
     });
   }
 
+  await yield_();
   // ── 5. Too many font weights ──────────────────────────────────────────────
   const weightEls = Array.from(doc.querySelectorAll('p, span, h1, h2, h3, h4, a, button, label'))
     .filter(isVisible).slice(0, 100);
@@ -147,6 +152,7 @@ window.UXCheckEngine.checkVisual = (doc) => {
     });
   }
 
+  await yield_();
   // ── 6. Too many distinct text colors ─────────────────────────────────────
   const colorEls = Array.from(doc.querySelectorAll('p, h1, h2, h3, h4, h5, span, a, li'))
     .filter(isVisible).slice(0, 100);
@@ -169,6 +175,7 @@ window.UXCheckEngine.checkVisual = (doc) => {
     });
   }
 
+  await yield_();
   // ── 7. Too many background colors ────────────────────────────────────────
   const bgEls = Array.from(doc.querySelectorAll('section, div, header, footer, aside, nav, article'))
     .filter(isVisible).slice(0, 80);
@@ -191,9 +198,11 @@ window.UXCheckEngine.checkVisual = (doc) => {
     });
   }
 
+  await yield_();
   // ── 8. Animations without prefers-reduced-motion ─────────────────────────
-  const animatedEls = Array.from(doc.querySelectorAll('*'))
-    .filter(isVisible).slice(0, 100).filter(el => {
+  const animatedEls = Array.from(doc.querySelectorAll(
+    'a, button, [class*="animate"], [class*="transition"], [class*="motion"], [class*="fade"], [class*="slide"]'
+  )).filter(isVisible).slice(0, 40).filter(el => {
       const s = window.getComputedStyle(el);
       return (s.animationName && s.animationName !== 'none') ||
              (s.transitionDuration && s.transitionDuration !== '0s');
@@ -228,6 +237,7 @@ window.UXCheckEngine.checkVisual = (doc) => {
     }
   }
 
+  await yield_();
   // ── 9. Very fast or very slow transitions ────────────────────────────────
   const transitionEls = Array.from(doc.querySelectorAll('a, button, [class*="transition"], [class*="animate"]'))
     .filter(isVisible).slice(0, 60);
@@ -255,6 +265,7 @@ window.UXCheckEngine.checkVisual = (doc) => {
     });
   }
 
+  await yield_();
   // ── 10. Images missing width/height (causes CLS) ─────────────────────────
   const images = Array.from(doc.querySelectorAll('img')).slice(0, 80);
   const missingDimensions = images.filter(img => !img.getAttribute('width') || !img.getAttribute('height'));
@@ -271,6 +282,7 @@ window.UXCheckEngine.checkVisual = (doc) => {
     });
   }
 
+  await yield_();
   // ── 11. Below-fold images without lazy loading ───────────────────────────
   const viewportH = window.innerHeight;
   const nonLazyBelowFold = images.filter(img => {

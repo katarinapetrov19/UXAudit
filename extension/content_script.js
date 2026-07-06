@@ -71,6 +71,16 @@ function safeRun(name, fn) {
   }
 }
 
+async function safeRunAsync(name, fn) {
+  try {
+    const result = await fn();
+    return Array.isArray(result) ? result : [];
+  } catch (e) {
+    console.warn(`UXCheck: ${name} failed —`, e);
+    return [];
+  }
+}
+
 async function runAudit() {
   console.log('Starting UXCheck Audit...');
 
@@ -115,7 +125,7 @@ async function runAudit() {
   await yieldToMain();
   allIssues = allIssues.concat(safeRun('responsive', () => engine.checkResponsive(document)));
   await yieldToMain();
-  allIssues = allIssues.concat(safeRun('visual',     () => engine.checkVisual(document)));
+  allIssues = allIssues.concat(await safeRunAsync('visual', () => engine.checkVisual(document)));
 
   // Sort by severity
   const severityOrder = { Critical: 0, Major: 1, Info: 2, Minor: 3 };
