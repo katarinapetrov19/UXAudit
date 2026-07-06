@@ -1,17 +1,21 @@
 {
   "manifest_version": 3,
   "name": "UXCheck",
-  "version": "0.1.0",
+  "version": "0.4.0",
   "author": "UXCheck Team",
   "homepage_url": "https://uxcheck.io",
   "description": "Instantly audit any website for UX and accessibility issues.",
   "permissions": [
     "activeTab",
     "storage",
-    "scripting"
+    "scripting",
+    "sidePanel",
+    "tabs"
   ],
+  "side_panel": {
+    "default_path": "popup.html"
+  },
   "action": {
-    "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",

@@ -31,6 +31,7 @@ document.getElementById('runAudit').addEventListener('click', async () => {
   resultsDiv.innerHTML = '';
   statsDiv.style.display = 'none';
   exportActions.style.display = 'none';
+  document.getElementById('navBanner').classList.remove('visible');
 
   chrome.tabs.sendMessage(tab.id, { type: 'UXCheck_StartAudit' });
 });
@@ -127,6 +128,26 @@ function renderIssues() {
     });
   });
 }
+
+// Navigation banner — show when user moves to a new page
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.type === 'UXCheck_PageNavigated') {
+    const banner = document.getElementById('navBanner');
+    const bannerText = document.getElementById('navBannerText');
+    try {
+      const hostname = new URL(message.url).hostname;
+      bannerText.textContent = `New page: ${hostname}`;
+    } catch (e) {
+      bannerText.textContent = 'New page detected';
+    }
+    banner.classList.add('visible');
+  }
+});
+
+document.getElementById('navBannerScan').addEventListener('click', () => {
+  document.getElementById('navBanner').classList.remove('visible');
+  document.getElementById('runAudit').click();
+});
 
 // Filter buttons
 document.querySelectorAll('.filter-btn').forEach(btn => {
