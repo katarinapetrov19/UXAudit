@@ -56,6 +56,11 @@ function highlightElement(selector) {
   setTimeout(() => { overlay.remove(); }, 3000);
 }
 
+// Yield to browser between tasks so the page never freezes
+function yieldToMain() {
+  return new Promise(resolve => setTimeout(resolve, 0));
+}
+
 function safeRun(name, fn) {
   try {
     const result = fn();
@@ -77,23 +82,38 @@ async function runAudit() {
   const engine = window.UXCheckEngine;
   let allIssues = [];
 
-  // 1. Contrast — cap at 300 elements to avoid freezing on large pages
-  const textElements = Array.from(document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, a, button')).slice(0, 300);
-  textElements.forEach(el => {
-    if ((el.textContent || '').trim().length > 0) {
-      allIssues = allIssues.concat(safeRun('contrast', () => engine.checkContrast(el)));
-    }
-  });
+  // 1. Contrast — sample up to 100 visible leaf-text elements, yield between batches
+  const textElements = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, a, button, label'))
+    .filter(el => {
+      const t = (el.textContent || '').trim();
+      if (t.length === 0) return false;
+      const s = window.getComputedStyle(el);
+      return s.display !== 'none' && s.visibility !== 'hidden';
+    })
+    .slice(0, 100);
 
-  // 2–9. All other checks
-  allIssues = allIssues.concat(safeRun('headings',    () => engine.checkHeadings(document)));
-  allIssues = allIssues.concat(safeRun('landmarks',   () => engine.checkLandmarks(document)));
-  allIssues = allIssues.concat(safeRun('aria',        () => engine.checkAria(document)));
-  allIssues = allIssues.concat(safeRun('keyboard',    () => engine.checkKeyboard(document)));
-  allIssues = allIssues.concat(safeRun('heuristics',  () => engine.checkHeuristics(document)));
-  allIssues = allIssues.concat(safeRun('typography',  () => engine.checkTypography(document)));
-  allIssues = allIssues.concat(safeRun('hierarchy',   () => engine.checkHierarchy(document)));
-  allIssues = allIssues.concat(safeRun('responsive',  () => engine.checkResponsive(document)));
+  for (let i = 0; i < textElements.length; i++) {
+    allIssues = allIssues.concat(safeRun('contrast', () => engine.checkContrast(textElements[i])));
+    if (i % 20 === 19) await yieldToMain(); // yield every 20 elements
+  }
+
+  // 2–9. Each module runs then yields before the next
+  await yieldToMain();
+  allIssues = allIssues.concat(safeRun('headings',   () => engine.checkHeadings(document)));
+  await yieldToMain();
+  allIssues = allIssues.concat(safeRun('landmarks',  () => engine.checkLandmarks(document)));
+  await yieldToMain();
+  allIssues = allIssues.concat(safeRun('aria',       () => engine.checkAria(document)));
+  await yieldToMain();
+  allIssues = allIssues.concat(safeRun('keyboard',   () => engine.checkKeyboard(document)));
+  await yieldToMain();
+  allIssues = allIssues.concat(safeRun('heuristics', () => engine.checkHeuristics(document)));
+  await yieldToMain();
+  allIssues = allIssues.concat(safeRun('typography', () => engine.checkTypography(document)));
+  await yieldToMain();
+  allIssues = allIssues.concat(safeRun('hierarchy',  () => engine.checkHierarchy(document)));
+  await yieldToMain();
+  allIssues = allIssues.concat(safeRun('responsive', () => engine.checkResponsive(document)));
 
   // Sort by severity
   const severityOrder = { Critical: 0, Major: 1, Info: 2, Minor: 3 };
