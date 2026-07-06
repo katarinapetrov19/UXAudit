@@ -38,7 +38,7 @@ window.UXCheckEngine.checkHierarchy = (doc) => {
   }
 
   const buttons = Array.from(doc.querySelectorAll('button, [role="button"], input[type="submit"], input[type="button"], a.btn, a.button'))
-    .filter(isVisible);
+    .filter(isVisible).slice(0, 150);
 
   const primaryButtons = buttons.filter(btn => {
     const bg = window.getComputedStyle(btn).backgroundColor;

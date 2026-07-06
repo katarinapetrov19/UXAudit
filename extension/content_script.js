@@ -77,8 +77,8 @@ async function runAudit() {
   const engine = window.UXCheckEngine;
   let allIssues = [];
 
-  // 1. Contrast — run per element so one bad element can't break the whole check
-  const textElements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, span, a, button');
+  // 1. Contrast — cap at 300 elements to avoid freezing on large pages
+  const textElements = Array.from(document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, a, button')).slice(0, 300);
   textElements.forEach(el => {
     if ((el.textContent || '').trim().length > 0) {
       allIssues = allIssues.concat(safeRun('contrast', () => engine.checkContrast(el)));

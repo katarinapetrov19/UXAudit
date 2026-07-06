@@ -97,7 +97,7 @@ window.UXCheckEngine.checkResponsive = (doc) => {
   // ── 4. Touch target size (buttons, links, inputs) ─────────────────────────
   // WCAG 2.5.5 recommends at least 44×44px; 24×24px is the minimum (WCAG 2.5.8)
   const touchEls = Array.from(doc.querySelectorAll('a, button, input, select, textarea, [role="button"], [role="link"], [role="checkbox"], [role="radio"]'))
-    .filter(isVisible);
+    .filter(isVisible).slice(0, 200);
 
   const smallTargets = touchEls.filter(el => {
     const rect = el.getBoundingClientRect();

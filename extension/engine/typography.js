@@ -24,7 +24,7 @@ window.UXCheckEngine.checkTypography = (doc) => {
 
   // ── 1. Too many distinct font sizes ──────────────────────────────────────
   // More than 5 distinct computed font sizes signals no clear type scale.
-  const sizeElements = doc.querySelectorAll('p, li, span, div, h1, h2, h3, h4, h5, h6, a, button, label, td, th');
+  const sizeElements = Array.from(doc.querySelectorAll('p, li, h1, h2, h3, h4, h5, h6, a, button, td, th')).slice(0, 200);
   const fontSizes = new Set();
   sizeElements.forEach(el => {
     if (el.children.length === 0 && (el.textContent || '').trim().length > 3 && isVisible(el)) {
