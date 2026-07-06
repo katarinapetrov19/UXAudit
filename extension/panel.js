@@ -466,9 +466,9 @@
       const stored = await chrome.storage.local.get('auth_token');
       if (!stored.auth_token) {
         loader.style.display = 'none';
-        resultsEl.innerHTML = `<div class="empty-state" style="color:#d97706;">Sign in to use AI Audit.<br><span style="font-size:11px;color:#737373;display:block;margin-top:6px;">Create a free account at uxaudit-mu.vercel.app</span></div>`;
         aiBtn.disabled = false;
         aiBtn.innerHTML = '✦ AI Audit <span style="font-size:9px;background:#0a0a0a;color:white;padding:1px 5px;border-radius:999px;margin-left:4px;font-weight:600;">PRO</span>';
+        showAuthForm();
         return;
       }
 
@@ -525,6 +525,53 @@
       aiBtn.innerHTML = '✦ AI Audit <span style="font-size:9px;background:#0a0a0a;color:white;padding:1px 5px;border-radius:999px;margin-left:4px;font-weight:600;">PRO</span>';
     }
   });
+
+  // ── Auth form ─────────────────────────────────────────────────────────────
+  function showAuthForm(message) {
+    const resultsEl = shadow.getElementById('results');
+    resultsEl.innerHTML = `
+      <div style="padding:4px 0 12px;">
+        ${message ? `<p style="font-size:11px;color:#dc2626;margin:0 0 10px;">${message}</p>` : ''}
+        <p style="font-size:12px;color:#737373;margin:0 0 12px;line-height:1.5;">Sign in to use AI Audit. No account? <a href="https://uxaudit-mu.vercel.app" target="_blank" style="color:#2563eb;text-decoration:none;">Create one free ↗</a></p>
+        <input id="auth-email" type="email" placeholder="Email" style="display:block;width:100%;padding:8px 12px;border:1px solid rgba(0,0,0,0.12);border-radius:999px;font-family:DM Sans,sans-serif;font-size:12px;background:white;box-sizing:border-box;margin-bottom:8px;outline:none;" />
+        <input id="auth-password" type="password" placeholder="Password" style="display:block;width:100%;padding:8px 12px;border:1px solid rgba(0,0,0,0.12);border-radius:999px;font-family:DM Sans,sans-serif;font-size:12px;background:white;box-sizing:border-box;margin-bottom:10px;outline:none;" />
+        <button id="auth-submit" style="display:block;width:100%;padding:9px 16px;background:#0a0a0a;color:white;border:none;border-radius:999px;font-family:DM Sans,sans-serif;font-size:13px;font-weight:500;cursor:pointer;">Sign in</button>
+      </div>`;
+
+    shadow.getElementById('auth-submit').addEventListener('click', async () => {
+      const email = shadow.getElementById('auth-email').value.trim();
+      const password = shadow.getElementById('auth-password').value;
+      if (!email || !password) return;
+
+      const btn = shadow.getElementById('auth-submit');
+      btn.textContent = 'Signing in...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch('https://backend-production-834fb.up.railway.app/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showAuthForm(data.error || 'Login failed. Check your credentials.');
+          return;
+        }
+        // Store token and re-run AI audit
+        await chrome.storage.local.set({ auth_token: data.token });
+        resultsEl.innerHTML = '';
+        shadow.getElementById('ai-btn').click();
+      } catch (e) {
+        showAuthForm('Could not reach server. Try again.');
+      }
+    });
+
+    // Allow Enter key to submit
+    shadow.getElementById('auth-password').addEventListener('keydown', e => {
+      if (e.key === 'Enter') shadow.getElementById('auth-submit').click();
+    });
+  }
 
   // ── Export CSV ────────────────────────────────────────────────────────────
   shadow.getElementById('export-csv').addEventListener('click', () => {
