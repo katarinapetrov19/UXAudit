@@ -68,10 +68,13 @@ window.UXCheckEngine.checkLawsOfUX = async (doc) => {
     });
   });
 
-  // 4. More than 3 primary CTAs visible
+  // 4. More than 3 primary CTAs visible — yield per element
   await y();
-  const allBtns = Array.from(doc.querySelectorAll('button, a, [role="button"], input[type="submit"]')).slice(0, 80);
-  const primaryBtns = allBtns.filter(el => isSaturated(window.getComputedStyle(el).backgroundColor));
+  const primaryBtns = [];
+  for (const el of Array.from(doc.querySelectorAll('button,input[type="submit"]')).slice(0, 30)) {
+    await y();
+    if (isSaturated(window.getComputedStyle(el).backgroundColor)) primaryBtns.push(el);
+  }
   if (primaryBtns.length > 3) issues.push({
     type: 'LawsOfUX', severity: 'Minor',
     message: `${primaryBtns.length} primary/filled buttons on the page — Hick's Law: too many competing actions.`,
@@ -149,13 +152,17 @@ window.UXCheckEngine.checkLawsOfUX = async (doc) => {
 
   // ── VON RESTORFF EFFECT — the different thing gets remembered ─────────────
 
-  // 9. No visually distinct primary CTA — all buttons look the same
+  // 9. No visually distinct primary CTA — yield per element
   await y();
-  const visibleBtns = Array.from(doc.querySelectorAll('button, input[type="submit"], a[class*="btn"], a[class*="button"]')).slice(0, 40)
+  const visibleBtns = Array.from(doc.querySelectorAll('button,input[type="submit"]')).slice(0, 20)
     .filter(el => getText(el).length > 0);
+  let hasPrimary = false;
+  for (const el of visibleBtns) {
+    await y();
+    if (isSaturated(window.getComputedStyle(el).backgroundColor)) { hasPrimary = true; break; }
+  }
 
   if (visibleBtns.length >= 2) {
-    const hasPrimary = visibleBtns.some(el => isSaturated(window.getComputedStyle(el).backgroundColor));
     if (!hasPrimary) issues.push({
       type: 'LawsOfUX', severity: 'Major',
       message: 'No visually distinct primary button found — Von Restorff Effect: one CTA must stand out.',
