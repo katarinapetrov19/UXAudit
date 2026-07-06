@@ -4,7 +4,57 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'UXCheck_StartAudit') {
     runAudit();
   }
+  if (message.type === 'UXCheck_Highlight') {
+    highlightElement(message.selector);
+  }
 });
+
+function highlightElement(selector) {
+  // Remove any existing highlight
+  const prev = document.getElementById('__uxcheck_highlight__');
+  if (prev) prev.remove();
+
+  let el = null;
+  try { el = document.querySelector(selector); } catch (e) {}
+  if (!el) return;
+
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  const overlay = document.createElement('div');
+  overlay.id = '__uxcheck_highlight__';
+
+  const rect = el.getBoundingClientRect();
+  Object.assign(overlay.style, {
+    position: 'fixed',
+    top: rect.top + 'px',
+    left: rect.left + 'px',
+    width: rect.width + 'px',
+    height: rect.height + 'px',
+    outline: '3px solid #f97316',
+    outlineOffset: '2px',
+    borderRadius: '4px',
+    pointerEvents: 'none',
+    zIndex: '2147483647',
+    transition: 'opacity 0.4s',
+    opacity: '1',
+    boxShadow: '0 0 0 4px rgba(249,115,22,0.2)',
+  });
+
+  document.body.appendChild(overlay);
+
+  // Reposition after scroll settles
+  setTimeout(() => {
+    const r = el.getBoundingClientRect();
+    overlay.style.top  = r.top  + 'px';
+    overlay.style.left = r.left + 'px';
+    overlay.style.width  = r.width  + 'px';
+    overlay.style.height = r.height + 'px';
+  }, 400);
+
+  // Fade out after 2.5s
+  setTimeout(() => { overlay.style.opacity = '0'; }, 2500);
+  setTimeout(() => { overlay.remove(); }, 3000);
+}
 
 async function runAudit() {
   console.log('Starting UXCheck Audit...');

@@ -39,26 +39,28 @@ window.UXCheckEngine.checkKeyboard = (doc) => {
     }
   });
 
-  // 3. Focus indicators (outline: none)
+  // 3. Focus indicators — report once if outline is globally suppressed
   const focusables = doc.querySelectorAll('button, a, input, select, textarea, [tabindex="0"]');
+  let noOutlineCount = 0;
+  const noOutlineSelectors = [];
   focusables.forEach(el => {
-    // This is a bit of a heuristic as we can't easily check :focus state styles via getComputedStyle 
-    // without actually focusing. But we can check if the element has outline: none in its base style
-    // which often means it was removed globally.
     const style = window.getComputedStyle(el);
-    if (style.outlineStyle === 'none' || (parseFloat(style.outlineWidth) === 0)) {
-       // We'll mark this as info/minor since we don't know for sure if it's restored on :focus
-       issues.push({
-         type: 'Keyboard',
-         severity: 'Info',
-         message: 'Check for visible focus indicators.',
-         element: el.tagName.toLowerCase(),
-         selector: getSelector(el),
-         wcagRef: '2.4.7',
-         recommendation: 'Ensure that all focusable elements have a visible focus indicator (e.g., an outline).'
-       });
+    if (style.outlineStyle === 'none' || parseFloat(style.outlineWidth) === 0) {
+      noOutlineCount++;
+      if (noOutlineSelectors.length < 3) noOutlineSelectors.push(getSelector(el));
     }
   });
+  if (noOutlineCount > 0) {
+    issues.push({
+      type: 'Keyboard',
+      severity: 'Info',
+      message: `${noOutlineCount} focusable element(s) have no visible outline — focus indicators may be missing.`,
+      element: 'multiple',
+      selector: noOutlineSelectors.join(', '),
+      wcagRef: '2.4.7',
+      recommendation: 'Ensure all focusable elements have a visible :focus style. Never use outline:none without a replacement indicator.'
+    });
+  }
 
   return issues;
 };

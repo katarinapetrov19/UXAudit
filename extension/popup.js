@@ -73,6 +73,10 @@ chrome.runtime.onMessage.addListener((message) => {
               </div>
               ${issue.wcagRef ? `<div class="detail-item"><span class="detail-label">WCAG:</span> ${issue.wcagRef}</div>` : ''}
               ${issue.recommendation ? `<div class="detail-item"><span class="detail-label">Recommendation:</span> ${issue.recommendation}</div>` : ''}
+              ${issue.selector && issue.selector !== 'body' && issue.selector !== 'multiple' && issue.element !== 'multiple' ? `
+              <div class="detail-item" style="margin-top:8px;">
+                <button class="show-on-page-btn" data-selector="${issue.selector.replace(/"/g, '&quot;')}">Show on page</button>
+              </div>` : ''}
             </div>
           </div>
         `).join('');
@@ -81,10 +85,22 @@ chrome.runtime.onMessage.addListener((message) => {
 
     resultsDiv.innerHTML = html;
 
-    // Add click events for expanding
+    // Expand/collapse on card click
     document.querySelectorAll('.issue-card').forEach(card => {
       card.addEventListener('click', () => {
         card.classList.toggle('expanded');
+      });
+    });
+
+    // Show on page — scroll + highlight
+    document.querySelectorAll('.show-on-page-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const selector = btn.dataset.selector;
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        chrome.tabs.sendMessage(tab.id, { type: 'UXCheck_Highlight', selector });
+        btn.textContent = 'Highlighted';
+        setTimeout(() => { btn.textContent = 'Show on page'; }, 2800);
       });
     });
   }
