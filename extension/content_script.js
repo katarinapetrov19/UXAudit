@@ -108,24 +108,15 @@ async function runAudit() {
   }
 
   // 2–9. Each module runs then yields before the next
-  await yieldToMain();
-  allIssues = allIssues.concat(safeRun('headings',   () => engine.checkHeadings(document)));
-  await yieldToMain();
-  allIssues = allIssues.concat(safeRun('landmarks',  () => engine.checkLandmarks(document)));
-  await yieldToMain();
-  allIssues = allIssues.concat(safeRun('aria',       () => engine.checkAria(document)));
-  await yieldToMain();
-  allIssues = allIssues.concat(safeRun('keyboard',   () => engine.checkKeyboard(document)));
-  await yieldToMain();
-  allIssues = allIssues.concat(safeRun('heuristics', () => engine.checkHeuristics(document)));
-  await yieldToMain();
-  allIssues = allIssues.concat(safeRun('typography', () => engine.checkTypography(document)));
-  await yieldToMain();
-  allIssues = allIssues.concat(safeRun('hierarchy',  () => engine.checkHierarchy(document)));
-  await yieldToMain();
-  allIssues = allIssues.concat(safeRun('responsive', () => engine.checkResponsive(document)));
-  await yieldToMain();
-  allIssues = allIssues.concat(await safeRunAsync('visual', () => engine.checkVisual(document)));
+  allIssues = allIssues.concat(safeRun('headings',         () => engine.checkHeadings(document)));
+  allIssues = allIssues.concat(safeRun('landmarks',        () => engine.checkLandmarks(document)));
+  allIssues = allIssues.concat(await safeRunAsync('aria',        () => engine.checkAria(document)));
+  allIssues = allIssues.concat(await safeRunAsync('keyboard',    () => engine.checkKeyboard(document)));
+  allIssues = allIssues.concat(await safeRunAsync('heuristics',  () => engine.checkHeuristics(document)));
+  allIssues = allIssues.concat(await safeRunAsync('typography',  () => engine.checkTypography(document)));
+  allIssues = allIssues.concat(await safeRunAsync('hierarchy',   () => engine.checkHierarchy(document)));
+  allIssues = allIssues.concat(await safeRunAsync('responsive',  () => engine.checkResponsive(document)));
+  allIssues = allIssues.concat(await safeRunAsync('visual',      () => engine.checkVisual(document)));
 
   // Sort by severity
   const severityOrder = { Critical: 0, Major: 1, Info: 2, Minor: 3 };

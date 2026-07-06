@@ -1,121 +1,76 @@
-/**
- * Checks for general UX heuristic violations.
- */
 window.UXCheckEngine = window.UXCheckEngine || {};
-window.UXCheckEngine.checkHeuristics = (doc) => {
+window.UXCheckEngine.checkHeuristics = async (doc) => {
   const issues = [];
+  const y = () => new Promise(r => setTimeout(r, 0));
 
-  // 1. Font size check
-  const allElements = Array.from(doc.querySelectorAll('p, li, td')).slice(0, 100);
+  function gs(el) {
+    if (el.id) return '#' + el.id;
+    let s = el.tagName.toLowerCase();
+    if (el.className && typeof el.className === 'string')
+      s += '.' + Array.from(el.classList).slice(0,2).join('.');
+    return s;
+  }
+
+  // 1. Small fonts — cap 60
+  await y();
   const smallFonts = new Set();
-  allElements.forEach(el => {
-    if (el.children.length === 0 && (el.textContent || '').trim().length > 10) {
-      const style = window.getComputedStyle(el);
-      const fontSize = parseFloat(style.fontSize);
-      if (fontSize < 12) {
-        smallFonts.add(getSelector(el));
-      }
-    }
+  Array.from(doc.querySelectorAll('p,li,td')).slice(0,60).forEach(el => {
+    if (el.children.length===0 && (el.textContent||'').trim().length>10 &&
+        parseFloat(window.getComputedStyle(el).fontSize) < 12)
+      smallFonts.add(gs(el));
+  });
+  if (smallFonts.size) issues.push({ type:'Heuristics', severity:'Major',
+    message:'Small font size detected (< 12px).',
+    element:'multiple', selector:Array.from(smallFonts).slice(0,3).join(', '),
+    recommendation:'Use at least 12px (preferably 16px) for readable body text.' });
+
+  // 2. Vague link text — cap 80
+  await y();
+  const vague = ['click here','read more','learn more','more','here','link'];
+  Array.from(doc.querySelectorAll('a')).slice(0,80).forEach(a => {
+    const t = (a.textContent||'').trim().toLowerCase();
+    if (vague.includes(t)) issues.push({ type:'Heuristics', severity:'Major',
+      message:`Vague link text: "${(a.textContent||'').trim()}".`,
+      element:'a', selector:gs(a), wcagRef:'2.4.4',
+      recommendation:'Use descriptive link text that makes sense out of context.' });
   });
 
-  if (smallFonts.size > 0) {
-    issues.push({
-      type: 'Heuristics',
-      severity: 'Major',
-      message: 'Small font size detected (< 12px).',
-      element: 'multiple',
-      selector: Array.from(smallFonts).slice(0, 3).join(', ') + '...',
-      recommendation: 'Increase font size to at least 12px (preferably 16px) for better readability.'
-    });
-  }
-
-  // 2. Vague Link Text
-  const vagueTerms = ['click here', 'read more', 'learn more', 'more', 'here', 'link'];
-  const links = Array.from(doc.querySelectorAll('a')).slice(0, 100);
-  links.forEach(link => {
-    const text = (link.textContent || '').trim().toLowerCase();
-    if (vagueTerms.includes(text)) {
-      issues.push({
-        type: 'Heuristics',
-        severity: 'Major',
-        message: `Vague link text: "${(link.textContent || '').trim()}".`,
-        element: 'a',
-        selector: getSelector(link),
-        wcagRef: '2.4.4',
-        recommendation: 'Use descriptive link text that makes sense out of context.'
-      });
-    }
+  // 3. Placeholder/empty links — cap 80
+  await y();
+  Array.from(doc.querySelectorAll('a')).slice(0,80).forEach(a => {
+    const href = a.getAttribute('href');
+    if (!href||href==='#'||href==='') issues.push({ type:'Heuristics', severity:'Minor',
+      message:'Empty or placeholder link.',
+      element:'a', selector:gs(a),
+      recommendation:'All links should have a valid destination URL.' });
   });
 
-  // 3. Broken Links (basic check for empty href or #)
-  links.forEach(link => {
-    const href = link.getAttribute('href');
-    if (!href || href === '#' || href === '') {
-      issues.push({
-        type: 'Heuristics',
-        severity: 'Minor',
-        message: 'Empty or placeholder link (#).',
-        element: 'a',
-        selector: getSelector(link),
-        recommendation: 'Ensure all links have a valid destination URL.'
-      });
-    }
+  // 4. Missing page title
+  await y();
+  if (!doc.title||!doc.title.trim()) issues.push({ type:'Heuristics', severity:'Major',
+    message:'Page is missing a <title>.',
+    element:'head', selector:'title', wcagRef:'2.4.2',
+    recommendation:'Add a descriptive <title> tag.' });
+
+  // 5. Links opening in new window — count
+  await y();
+  const newTab = doc.querySelectorAll('a[target="_blank"]');
+  if (newTab.length) issues.push({ type:'Heuristics', severity:'Info',
+    message:`${newTab.length} link(s) open in a new window.`,
+    element:'a', selector:'a[target="_blank"]',
+    recommendation:'Inform users when links open in a new window.' });
+
+  // 6. Too many font families — cap 30
+  await y();
+  const families = new Set();
+  Array.from(doc.querySelectorAll('p,h1,h2,h3')).slice(0,30).forEach(el => {
+    const f = (window.getComputedStyle(el).fontFamily||'').split(',')[0].trim().replace(/['"]/g,'').toLowerCase();
+    if (f) families.add(f);
   });
-
-  // 4. Missing Page Title
-  if (!doc.title || doc.title.trim() === '') {
-    issues.push({
-      type: 'Heuristics',
-      severity: 'Major',
-      message: 'Page is missing a title.',
-      element: 'head',
-      selector: 'title',
-      wcagRef: '2.4.2',
-      recommendation: 'Add a descriptive <title> to the page.'
-    });
-  }
-
-  // 5. Target="_blank" without warning
-  const newWindowLinks = doc.querySelectorAll('a[target="_blank"]');
-  if (newWindowLinks.length > 0) {
-    issues.push({
-      type: 'Heuristics',
-      severity: 'Info',
-      message: `${newWindowLinks.length} links open in a new window.`,
-      element: 'multiple',
-      selector: 'a[target="_blank"]',
-      recommendation: 'Inform users when links open in a new window to avoid confusion.'
-    });
-  }
-
-  // 6. Inconsistent Styling (Font Families)
-  const fontFamilies = new Set();
-  const sampleElements = Array.from(doc.querySelectorAll('p, h1, h2, h3')).slice(0, 40);
-  sampleElements.forEach(el => {
-    const style = window.getComputedStyle(el);
-    const family = (style.fontFamily || '').split(',')[0].trim().replace(/['"]/g, '');
-    if (family) fontFamilies.add(family);
-  });
-
-  if (fontFamilies.size > 3) {
-    issues.push({
-      type: 'Heuristics',
-      severity: 'Minor',
-      message: `Found ${fontFamilies.size} different font families.`,
-      element: 'body',
-      selector: 'body',
-      recommendation: 'Limit the number of font families to 2-3 for a more consistent and professional look.'
-    });
-  }
+  if (families.size > 3) issues.push({ type:'Heuristics', severity:'Minor',
+    message:`${families.size} inline font families detected.`,
+    element:'body', selector:'body',
+    recommendation:'Limit font families to 2–3 for visual consistency.' });
 
   return issues;
 };
-
-function getSelector(el) {
-  if (el.id) return '#' + el.id;
-  let selector = el.tagName.toLowerCase();
-  if (el.className && typeof el.className === 'string') {
-    selector += '.' + Array.from(el.classList).join('.');
-  }
-  return selector;
-}
