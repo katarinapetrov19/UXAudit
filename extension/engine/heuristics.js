@@ -31,7 +31,7 @@ window.UXCheckEngine.checkHeuristics = (doc) => {
 
   // 2. Vague Link Text
   const vagueTerms = ['click here', 'read more', 'learn more', 'more', 'here', 'link'];
-  const links = doc.querySelectorAll('a');
+  const links = Array.from(doc.querySelectorAll('a')).slice(0, 100);
   links.forEach(link => {
     const text = (link.textContent || '').trim().toLowerCase();
     if (vagueTerms.includes(text)) {
@@ -90,7 +90,7 @@ window.UXCheckEngine.checkHeuristics = (doc) => {
 
   // 6. Inconsistent Styling (Font Families)
   const fontFamilies = new Set();
-  const sampleElements = doc.querySelectorAll('p, h1, h2, h3');
+  const sampleElements = Array.from(doc.querySelectorAll('p, h1, h2, h3')).slice(0, 40);
   sampleElements.forEach(el => {
     const style = window.getComputedStyle(el);
     const family = (style.fontFamily || '').split(',')[0].trim().replace(/['"]/g, '');

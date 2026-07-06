@@ -6,7 +6,7 @@ window.UXCheckEngine.checkAria = (doc) => {
   const issues = [];
 
   // 1. Image alt attributes
-  const images = doc.querySelectorAll('img');
+  const images = Array.from(doc.querySelectorAll('img')).slice(0, 80);
   images.forEach(img => {
     if (!img.hasAttribute('alt')) {
       issues.push({
@@ -22,7 +22,7 @@ window.UXCheckEngine.checkAria = (doc) => {
   });
 
   // 2. Form labels
-  const inputs = doc.querySelectorAll('input, select, textarea');
+  const inputs = Array.from(doc.querySelectorAll('input, select, textarea')).slice(0, 60);
   inputs.forEach(input => {
     const id = input.id;
     const hasLabel = id ? !!doc.querySelector(`label[for="${id}"]`) : false;
@@ -44,7 +44,7 @@ window.UXCheckEngine.checkAria = (doc) => {
 
   // 3. Duplicate IDs
   const ids = new Set();
-  const allElementsWithId = doc.querySelectorAll('[id]');
+  const allElementsWithId = Array.from(doc.querySelectorAll('[id]')).slice(0, 200);
   allElementsWithId.forEach(el => {
     if (ids.has(el.id)) {
       issues.push({

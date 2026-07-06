@@ -73,8 +73,8 @@ window.UXCheckEngine.checkResponsive = (doc) => {
   }
 
   // ── 3. Elements with fixed pixel widths that may overflow ─────────────────
-  const allEls = Array.from(doc.querySelectorAll('div, section, article, aside, main, table, img, figure'))
-    .filter(isVisible);
+  const allEls = Array.from(doc.querySelectorAll('section, article, table, img, figure'))
+    .filter(isVisible).slice(0, 40);
 
   const fixedWideEls = allEls.filter(el => {
     const style = window.getComputedStyle(el);
@@ -135,7 +135,7 @@ window.UXCheckEngine.checkResponsive = (doc) => {
   }
 
   // ── 5. Images without max-width or responsive treatment ───────────────────
-  const images = Array.from(doc.querySelectorAll('img')).filter(isVisible);
+  const images = Array.from(doc.querySelectorAll('img')).filter(isVisible).slice(0, 50);
   const rigidImages = images.filter(img => {
     const style = window.getComputedStyle(img);
     const hasFixedWidth = img.getAttribute('width') && !img.style.maxWidth;
@@ -157,7 +157,7 @@ window.UXCheckEngine.checkResponsive = (doc) => {
   }
 
   // ── 6. Tables without responsive treatment ────────────────────────────────
-  const tables = Array.from(doc.querySelectorAll('table')).filter(isVisible);
+  const tables = Array.from(doc.querySelectorAll('table')).filter(isVisible).slice(0, 20);
   const rigidTables = tables.filter(table => {
     const style = window.getComputedStyle(table);
     const width = table.getBoundingClientRect().width;
