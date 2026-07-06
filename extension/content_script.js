@@ -103,6 +103,7 @@ async function runAudit() {
   await y(); all = all.concat(await safeRunAsync('hierarchy',  () => engine.checkHierarchy(document)));
   await y(); all = all.concat(await safeRunAsync('responsive', () => engine.checkResponsive(document)));
   await y(); all = all.concat(await safeRunAsync('visual',     () => engine.checkVisual(document)));
+  await y(); all = all.concat(await safeRunAsync('layout',     () => engine.checkLayout(document)));
 
   // Contrast — run last, small sample, each element gets its own yield
   await y();

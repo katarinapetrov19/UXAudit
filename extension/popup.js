@@ -5,7 +5,7 @@ let currentFilter = 'all';
 const FILTER_GROUPS = {
   accessibility: ['ARIA', 'Contrast', 'Headings', 'Landmarks', 'Keyboard'],
   typography:    ['Typography'],
-  layout:        ['Hierarchy', 'Responsive'],
+  layout:        ['Hierarchy', 'Responsive', 'Layout'],
   ux:            ['Heuristics'],
   visual:        ['Visual'],
 };

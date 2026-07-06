@@ -45,6 +45,7 @@
         "engine/hierarchy.js",
         "engine/responsive.js",
         "engine/visual.js",
+        "engine/layout.js",
         "content_script.js"
       ]
     }
