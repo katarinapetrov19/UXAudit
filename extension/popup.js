@@ -31,7 +31,6 @@ document.getElementById('runAudit').addEventListener('click', async () => {
   resultsDiv.innerHTML = '';
   statsDiv.style.display = 'none';
   exportActions.style.display = 'none';
-  document.getElementById('navBanner').classList.remove('visible');
 
   chrome.tabs.sendMessage(tab.id, { type: 'UXCheck_StartAudit' });
 });
@@ -129,25 +128,31 @@ function renderIssues() {
   });
 }
 
-// Navigation banner — show when user moves to a new page
-chrome.runtime.onMessage.addListener((message) => {
-  if (message.type === 'UXCheck_PageNavigated') {
-    const banner = document.getElementById('navBanner');
-    const bannerText = document.getElementById('navBannerText');
-    try {
-      const hostname = new URL(message.url).hostname;
-      bannerText.textContent = `New page: ${hostname}`;
-    } catch (e) {
-      bannerText.textContent = 'New page detected';
-    }
-    banner.classList.add('visible');
-  }
-});
+// Restore last results for this tab when popup opens
+(async () => {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab) return;
+  const stored = await chrome.storage.session.get(`tab_${tab.id}`);
+  const cached = stored[`tab_${tab.id}`];
+  if (cached) {
+    currentIssues = cached.data;
+    currentReport = cached.report;
 
-document.getElementById('navBannerScan').addEventListener('click', () => {
-  document.getElementById('navBanner').classList.remove('visible');
-  document.getElementById('runAudit').click();
-});
+    const statsDiv = document.getElementById('stats');
+    const exportActions = document.getElementById('export-actions');
+    const button = document.getElementById('runAudit');
+
+    button.innerText = 'Run Again';
+    statsDiv.style.display = 'grid';
+    exportActions.style.display = 'grid';
+    document.getElementById('critical-count').innerText = currentReport.summary.critical;
+    document.getElementById('major-count').innerText = currentReport.summary.major;
+    document.getElementById('minor-count').innerText = currentReport.summary.minor;
+    document.getElementById('info-count').innerText = currentReport.summary.info;
+    document.getElementById('filters').style.display = currentIssues.length ? 'flex' : 'none';
+    renderIssues();
+  }
+})();
 
 // Filter buttons
 document.querySelectorAll('.filter-btn').forEach(btn => {

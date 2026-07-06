@@ -1,19 +1,22 @@
 chrome.runtime.onInstalled.addListener(() => {
-  // Allow the side panel on all pages by default
-  chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
+  console.log('UXCheck installed');
 });
 
-// Also set it on startup in case the service worker restarts
-chrome.runtime.onStartup.addListener(() => {
-  chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
+// Store audit results per tab so popup can restore them on reopen
+chrome.runtime.onMessage.addListener((message, sender) => {
+  if (message.type === 'UXCheck_AuditResults' && sender.tab) {
+    chrome.storage.session.set({ [`tab_${sender.tab.id}`]: { data: message.data, report: message.report } });
+  }
 });
 
-// Auto-rescan when user navigates to a new page
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  // Only trigger when the page has fully loaded (not just tab title changes etc.)
-  if (changeInfo.status !== 'complete') return;
-  if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) return;
+// Clear stored results when tab navigates away
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  if (changeInfo.status === 'loading') {
+    chrome.storage.session.remove(`tab_${tabId}`);
+  }
+});
 
-  // Tell the side panel a new page has loaded so it can show the rescan prompt
-  chrome.runtime.sendMessage({ type: 'UXCheck_PageNavigated', tabId, url: tab.url }).catch(() => {});
+// Clean up when tab is closed
+chrome.tabs.onRemoved.addListener(tabId => {
+  chrome.storage.session.remove(`tab_${tabId}`);
 });
