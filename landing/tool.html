@@ -29,13 +29,21 @@
 
     <!-- Header -->
     <header class="sticky top-0 z-50 bg-[#F2F1ED]/80 backdrop-blur-md border-b border-black/[0.08]">
-        <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+        <div class="max-w-6xl mx-auto px-6 h-14 grid grid-cols-3 items-center">
             <a href="/" class="flex items-center gap-2">
                 <span class="font-semibold text-sm tracking-tight">UXCheck</span>
             </a>
-            <a href="#install" onclick="window.location='/'" class="px-5 py-2 bg-[#0a0a0a] text-white text-sm font-medium rounded-full hover:bg-neutral-700 transition-colors">
-                Get the Extension
-            </a>
+            <nav class="hidden md:flex justify-center gap-8 text-sm text-neutral-500">
+                <a href="/#features" class="hover:text-black transition-colors">Features</a>
+                <a href="/#how-it-works" class="hover:text-black transition-colors">How it Works</a>
+                <a href="/#pricing" class="hover:text-black transition-colors">Pricing</a>
+                <a href="/tool.html" class="text-black font-medium">Web Tool</a>
+            </nav>
+            <div class="flex items-center justify-end">
+                <a href="/#install" class="px-5 py-2 bg-[#0a0a0a] text-white text-sm font-medium rounded-full hover:bg-neutral-700 transition-colors">
+                    Get the Extension
+                </a>
+            </div>
         </div>
     </header>
 
