@@ -1,6 +1,7 @@
 console.log('UXCheck content script loaded');
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'UXCheck_Ping') { sendResponse({ ok: true }); return; }
   if (message.type === 'UXCheck_StartAudit') runAudit();
   if (message.type === 'UXCheck_Highlight') highlightElement(message.selector);
   if (message.type === 'UXCheck_OpenPDF' && message.report) {

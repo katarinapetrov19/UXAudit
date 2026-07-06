@@ -389,6 +389,8 @@
   });
 
   // ── Run audit ─────────────────────────────────────────────────────────────
+  let scanTimeout = null;
+
   shadow.getElementById('run-btn').addEventListener('click', () => {
     const runBtn = shadow.getElementById('run-btn');
     const loader = shadow.getElementById('loader');
@@ -399,12 +401,27 @@
     shadow.getElementById('stats').style.display = 'none';
     shadow.getElementById('export-row').style.display = 'none';
     shadow.getElementById('filters').style.display = 'none';
+
+    // Timeout — if no results arrive in 15s, show an error
+    clearTimeout(scanTimeout);
+    scanTimeout = setTimeout(() => {
+      runBtn.disabled = false;
+      runBtn.textContent = 'Try Again';
+      loader.style.display = 'none';
+      shadow.getElementById('results').innerHTML = `
+        <div class="empty-state" style="color:#dc2626;">
+          Could not reach the page script.<br>
+          <span style="font-size:11px;color:#737373;display:block;margin-top:6px;">Try reloading the page, then click the icon again.</span>
+        </div>`;
+    }, 15000);
+
     chrome.runtime.sendMessage({ type: 'UXCheck_StartAudit' });
   });
 
   // ── Receive results ───────────────────────────────────────────────────────
   chrome.runtime.onMessage.addListener(message => {
     if (message.type !== 'UXCheck_AuditResults') return;
+    clearTimeout(scanTimeout);
     currentIssues = message.data;
     currentReport = message.report;
     currentFilter = 'all';
