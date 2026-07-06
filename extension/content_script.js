@@ -13,44 +13,76 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-// Inject keyframe style once
+// Inject keyframe style once — used by the overlay div
 (function() {
   if (document.getElementById('__uxcheck_style__')) return;
   const s = document.createElement('style');
   s.id = '__uxcheck_style__';
   s.textContent = `
     @keyframes __uxcheck_pulse__ {
-      0%   { outline-color: #f97316; box-shadow: 0 0 0 4px rgba(249,115,22,0.4); }
-      50%  { outline-color: #fb923c; box-shadow: 0 0 0 8px rgba(249,115,22,0.1); }
-      100% { outline-color: #f97316; box-shadow: 0 0 0 4px rgba(249,115,22,0.4); }
+      0%   { box-shadow: 0 0 0 0px rgba(249,115,22,0.6); }
+      50%  { box-shadow: 0 0 0 8px rgba(249,115,22,0.0); }
+      100% { box-shadow: 0 0 0 0px rgba(249,115,22,0.0); }
     }
-    .__uxcheck_highlight__ {
-      outline: 3px solid #f97316 !important;
-      outline-offset: 3px !important;
-      animation: __uxcheck_pulse__ 0.8s ease-in-out 3 !important;
-      border-radius: 4px !important;
-      transition: none !important;
+    #__uxcheck_overlay__ {
+      position: fixed !important;
+      pointer-events: none !important;
+      z-index: 2147483647 !important;
+      border: 3px solid #f97316 !important;
+      border-radius: 6px !important;
+      background: rgba(249,115,22,0.06) !important;
+      animation: __uxcheck_pulse__ 0.7s ease-out 3 !important;
+      transition: top 0.1s, left 0.1s, width 0.1s, height 0.1s !important;
+      box-sizing: border-box !important;
     }
   `;
   document.documentElement.appendChild(s);
 })();
 
 function highlightElement(selector) {
-  // Remove previous highlight
-  document.querySelectorAll('.__uxcheck_highlight__').forEach(el => el.classList.remove('__uxcheck_highlight__'));
+  // Remove any previous overlay
+  const prev = document.getElementById('__uxcheck_overlay__');
+  if (prev) prev.remove();
 
   let el = null;
   try { el = document.querySelector(selector); } catch (e) {}
   if (!el) return;
 
-  // Scroll first, then apply class so element is in view
+  function drawOverlay() {
+    const existing = document.getElementById('__uxcheck_overlay__');
+    if (existing) existing.remove();
+
+    const r = el.getBoundingClientRect();
+    // Only draw if element is actually in the viewport
+    if (r.width === 0 || r.height === 0) return;
+
+    const overlay = document.createElement('div');
+    overlay.id = '__uxcheck_overlay__';
+    Object.assign(overlay.style, {
+      top:    (r.top    - 4) + 'px',
+      left:   (r.left   - 4) + 'px',
+      width:  (r.width  + 8) + 'px',
+      height: (r.height + 8) + 'px',
+    });
+    document.documentElement.appendChild(overlay);
+    setTimeout(() => overlay.remove(), 3000);
+  }
+
+  // Use IntersectionObserver to draw the overlay only after the element
+  // is actually visible — eliminates all scroll-timing issues
+  const observer = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) {
+      observer.disconnect();
+      // Small rAF delay so the browser has painted the new scroll position
+      requestAnimationFrame(() => requestAnimationFrame(drawOverlay));
+    }
+  }, { threshold: 0.1 });
+
+  observer.observe(el);
   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-  // Apply highlight class directly on the element — no positioning math needed
-  setTimeout(() => {
-    el.classList.add('__uxcheck_highlight__');
-    setTimeout(() => el.classList.remove('__uxcheck_highlight__'), 2500);
-  }, 300); // small delay so scroll settles first
+  // Fallback: if element never intersects (e.g. hidden), draw after 1s anyway
+  setTimeout(() => { observer.disconnect(); drawOverlay(); }, 1000);
 }
 
 const y = () => new Promise(r => setTimeout(r, 0));
