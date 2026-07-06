@@ -40,6 +40,7 @@
         "engine/typography.js",
         "engine/hierarchy.js",
         "engine/responsive.js",
+        "engine/visual.js",
         "content_script.js"
       ]
     }

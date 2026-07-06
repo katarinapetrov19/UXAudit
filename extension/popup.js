@@ -73,6 +73,7 @@ chrome.runtime.onMessage.addListener((message) => {
               </div>
               ${issue.wcagRef ? `<div class="detail-item"><span class="detail-label">WCAG:</span> ${issue.wcagRef}</div>` : ''}
               ${issue.recommendation ? `<div class="detail-item"><span class="detail-label">Recommendation:</span> ${issue.recommendation}</div>` : ''}
+              ${issue.library ? `<div class="detail-item" style="margin-top:6px; padding:6px 8px; background:#f1f5f9; border-radius:8px; font-size:11px; color:#475569;"><span style="font-weight:600;">Library tip:</span> ${issue.library}</div>` : ''}
               ${issue.selector && issue.selector !== 'body' && issue.selector !== 'multiple' && issue.element !== 'multiple' ? `
               <div class="detail-item" style="margin-top:8px;">
                 <button class="show-on-page-btn" data-selector="${issue.selector.replace(/"/g, '&quot;')}">Show on page</button>

@@ -114,6 +114,8 @@ async function runAudit() {
   allIssues = allIssues.concat(safeRun('hierarchy',  () => engine.checkHierarchy(document)));
   await yieldToMain();
   allIssues = allIssues.concat(safeRun('responsive', () => engine.checkResponsive(document)));
+  await yieldToMain();
+  allIssues = allIssues.concat(safeRun('visual',     () => engine.checkVisual(document)));
 
   // Sort by severity
   const severityOrder = { Critical: 0, Major: 1, Info: 2, Minor: 3 };
