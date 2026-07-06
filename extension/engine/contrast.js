@@ -34,17 +34,13 @@ function parseRGB(rgbString) {
 }
 
 /**
- * Gets the actual background color by traversing up the DOM if necessary.
+ * Gets background color from the element only — no DOM traversal.
+ * Traversal was causing thread-blocking on complex pages.
  */
 function getActualBackgroundColor(element) {
-  let el = element;
-  while (el) {
-    const style = window.getComputedStyle(el);
-    const bg = parseRGB(style.backgroundColor);
-    if (bg && bg.a > 0) return bg;
-    el = el.parentElement;
-  }
-  return { r: 255, g: 255, b: 255, a: 1 }; // Default to white
+  const bg = parseRGB(window.getComputedStyle(element).backgroundColor);
+  if (bg && bg.a > 0) return bg;
+  return { r: 255, g: 255, b: 255, a: 1 }; // Default white
 }
 
 window.UXCheckEngine = window.UXCheckEngine || {};
