@@ -56,9 +56,19 @@ function highlightElement(selector) {
   setTimeout(() => { overlay.remove(); }, 3000);
 }
 
+function safeRun(name, fn) {
+  try {
+    const result = fn();
+    return Array.isArray(result) ? result : [];
+  } catch (e) {
+    console.warn(`UXCheck: ${name} failed —`, e);
+    return [];
+  }
+}
+
 async function runAudit() {
   console.log('Starting UXCheck Audit...');
-  
+
   if (!window.UXCheckEngine) {
     console.error('UXCheck Engine not found!');
     return;
@@ -67,46 +77,29 @@ async function runAudit() {
   const engine = window.UXCheckEngine;
   let allIssues = [];
 
-  // Run all checks
-  // 1. Contrast
+  // 1. Contrast — run per element so one bad element can't break the whole check
   const textElements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, span, a, button');
   textElements.forEach(el => {
     if ((el.textContent || '').trim().length > 0) {
-      allIssues = allIssues.concat(engine.checkContrast(el));
+      allIssues = allIssues.concat(safeRun('contrast', () => engine.checkContrast(el)));
     }
   });
 
-  // 2. Headings
-  allIssues = allIssues.concat(engine.checkHeadings(document));
+  // 2–9. All other checks
+  allIssues = allIssues.concat(safeRun('headings',    () => engine.checkHeadings(document)));
+  allIssues = allIssues.concat(safeRun('landmarks',   () => engine.checkLandmarks(document)));
+  allIssues = allIssues.concat(safeRun('aria',        () => engine.checkAria(document)));
+  allIssues = allIssues.concat(safeRun('keyboard',    () => engine.checkKeyboard(document)));
+  allIssues = allIssues.concat(safeRun('heuristics',  () => engine.checkHeuristics(document)));
+  allIssues = allIssues.concat(safeRun('typography',  () => engine.checkTypography(document)));
+  allIssues = allIssues.concat(safeRun('hierarchy',   () => engine.checkHierarchy(document)));
+  allIssues = allIssues.concat(safeRun('responsive',  () => engine.checkResponsive(document)));
 
-  // 3. Landmarks
-  allIssues = allIssues.concat(engine.checkLandmarks(document));
-
-  // 4. ARIA
-  allIssues = allIssues.concat(engine.checkAria(document));
-
-  // 5. Keyboard
-  allIssues = allIssues.concat(engine.checkKeyboard(document));
-
-  // 6. Heuristics
-  allIssues = allIssues.concat(engine.checkHeuristics(document));
-
-  // 7. Typography
-  allIssues = allIssues.concat(engine.checkTypography(document));
-
-  // 8. Visual Hierarchy
-  allIssues = allIssues.concat(engine.checkHierarchy(document));
-
-  // 9. Responsive Design
-  allIssues = allIssues.concat(engine.checkResponsive(document));
-
-  // Sort by severity: Critical > Major > Minor > Info
-  const severityOrder = { 'Critical': 0, 'Major': 1, 'Minor': 2, 'Info': 3 };
+  // Sort by severity
+  const severityOrder = { Critical: 0, Major: 1, Minor: 2, Info: 3 };
   allIssues.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
 
-  // Generate Report
   const report = engine.generateReport(allIssues);
-
   console.log(`Audit complete. Found ${allIssues.length} issues.`, report);
 
   chrome.runtime.sendMessage({
