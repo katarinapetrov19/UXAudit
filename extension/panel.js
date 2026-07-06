@@ -459,14 +459,8 @@
     resultsEl.innerHTML = '';
 
     try {
-      // Get page structure from content script
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      const pageStructure = await new Promise((resolve, reject) => {
-        chrome.tabs.sendMessage(tab.id, { type: 'UXCheck_GetPageStructure' }, (res) => {
-          if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
-          else resolve(res);
-        });
-      });
+      // extractPageStructure() is defined in content_script.js — same isolated world
+      const pageStructure = extractPageStructure();
 
       // Get auth token from storage
       const stored = await chrome.storage.local.get('auth_token');
