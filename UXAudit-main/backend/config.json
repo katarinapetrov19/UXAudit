@@ -1,8 +1,0 @@
-{
-  "port": 3000,
-  "free_scan_limit": 5,
-  "pro_price_id": "price_1Tl76ERetkuwx0eim7f9vjvC",
-  "agency_price_id": "price_1Tl76URetkuwx0eiB3XDQRPy",
-  "stripe_webhook_secret": "whsec_placeholder",
-  "jwt_secret": "uxcheck_secret_key"
-}
