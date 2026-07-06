@@ -412,7 +412,7 @@
             }
 
             // Group by severity
-            const sevs = ['Critical','Major','Minor','Info'];
+            const sevs = ['Critical','Major','Info','Minor'];
             let html = '';
             sevs.forEach(sev => {
                 const group = data.issues.filter(i => i.severity === sev);
