@@ -219,14 +219,23 @@
         <div class="drag-handle"><span></span><span></span><span></span></div>
         <span class="title">UXCheck</span>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;">
+      <div style="display:flex;align-items:center;gap:6px;">
         <span class="version">v0.5.0</span>
+        <button class="close-btn" id="settings-btn" title="API Key settings">⚙</button>
         <button class="close-btn" id="close-btn">✕</button>
       </div>
     </div>
     <div class="body">
       <button class="btn" id="run-btn">Scan Current Page</button>
       <button class="btn" id="ai-btn" style="background:rgba(0,0,0,0.06);color:#0a0a0a;margin-top:-8px;">✦ AI Audit <span style="font-size:9px;background:#0a0a0a;color:white;padding:1px 5px;border-radius:999px;margin-left:4px;font-weight:600;">PRO</span></button>
+      <div id="settings-panel" style="display:none;padding:12px 0 4px;">
+        <p style="font-size:11px;color:#737373;margin:0 0 8px;line-height:1.5;">Paste your UXCheck API key to enable AI Audit. <a href="https://uxaudit-mu.vercel.app" target="_blank" style="color:#2563eb;text-decoration:none;">Get one free ↗</a></p>
+        <div style="display:flex;gap:6px;">
+          <input id="apikey-input" type="password" placeholder="uxc_..." style="flex:1;padding:7px 12px;border:1px solid rgba(0,0,0,0.12);border-radius:999px;font-family:DM Sans,sans-serif;font-size:12px;background:white;outline:none;box-sizing:border-box;" />
+          <button id="apikey-save" style="padding:7px 14px;background:#0a0a0a;color:white;border:none;border-radius:999px;font-family:DM Sans,sans-serif;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;">Save</button>
+        </div>
+        <p id="apikey-status" style="font-size:11px;margin:6px 0 0;color:#737373;"></p>
+      </div>
       <div class="loader" id="loader">Scanning page...</div>
       <div id="stats" style="display:none;" class="stats">
         <div class="stat-item"><div class="stat-value" id="c-count" style="color:#dc2626">0</div><div class="stat-label">Critical</div></div>
@@ -463,12 +472,15 @@
       const pageStructure = extractPageStructure();
 
       // Get auth token from storage
-      const stored = await chrome.storage.local.get('auth_token');
-      if (!stored.auth_token) {
+      const stored = await chrome.storage.local.get('uxcheck_api_key');
+      const apiKey = stored.uxcheck_api_key;
+      if (!apiKey) {
         loader.style.display = 'none';
         aiBtn.disabled = false;
         aiBtn.innerHTML = '✦ AI Audit <span style="font-size:9px;background:#0a0a0a;color:white;padding:1px 5px;border-radius:999px;margin-left:4px;font-weight:600;">PRO</span>';
-        showAuthForm();
+        // Open settings panel
+        shadow.getElementById('settings-panel').style.display = 'block';
+        shadow.getElementById('apikey-status').textContent = 'Add your API key above to use AI Audit.';
         return;
       }
 
@@ -476,7 +488,7 @@
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${stored.auth_token}`
+          'x-api-key': apiKey
         },
         body: JSON.stringify({ url: pageStructure.url, pageStructure })
       });
@@ -526,52 +538,53 @@
     }
   });
 
-  // ── Auth form ─────────────────────────────────────────────────────────────
-  function showAuthForm(message) {
-    const resultsEl = shadow.getElementById('results');
-    resultsEl.innerHTML = `
-      <div style="padding:4px 0 12px;">
-        ${message ? `<p style="font-size:11px;color:#dc2626;margin:0 0 10px;">${message}</p>` : ''}
-        <p style="font-size:12px;color:#737373;margin:0 0 12px;line-height:1.5;">Sign in to use AI Audit. No account? <a href="https://uxaudit-mu.vercel.app" target="_blank" style="color:#2563eb;text-decoration:none;">Create one free ↗</a></p>
-        <input id="auth-email" type="email" placeholder="Email" style="display:block;width:100%;padding:8px 12px;border:1px solid rgba(0,0,0,0.12);border-radius:999px;font-family:DM Sans,sans-serif;font-size:12px;background:white;box-sizing:border-box;margin-bottom:8px;outline:none;" />
-        <input id="auth-password" type="password" placeholder="Password" style="display:block;width:100%;padding:8px 12px;border:1px solid rgba(0,0,0,0.12);border-radius:999px;font-family:DM Sans,sans-serif;font-size:12px;background:white;box-sizing:border-box;margin-bottom:10px;outline:none;" />
-        <button id="auth-submit" style="display:block;width:100%;padding:9px 16px;background:#0a0a0a;color:white;border:none;border-radius:999px;font-family:DM Sans,sans-serif;font-size:13px;font-weight:500;cursor:pointer;">Sign in</button>
-      </div>`;
+  // ── Settings — API key ───────────────────────────────────────────────────
+  shadow.getElementById('settings-btn').addEventListener('click', () => {
+    const sp = shadow.getElementById('settings-panel');
+    sp.style.display = sp.style.display === 'none' ? 'block' : 'none';
+  });
 
-    shadow.getElementById('auth-submit').addEventListener('click', async () => {
-      const email = shadow.getElementById('auth-email').value.trim();
-      const password = shadow.getElementById('auth-password').value;
-      if (!email || !password) return;
+  // Pre-fill saved key (masked)
+  chrome.storage.local.get('uxcheck_api_key', ({ uxcheck_api_key }) => {
+    if (uxcheck_api_key) {
+      shadow.getElementById('apikey-input').placeholder = '••••••••••••• (saved)';
+      shadow.getElementById('apikey-status').textContent = '✓ API key saved — AI Audit is enabled.';
+      shadow.getElementById('apikey-status').style.color = '#16a34a';
+    }
+  });
 
-      const btn = shadow.getElementById('auth-submit');
-      btn.textContent = 'Signing in...';
-      btn.disabled = true;
+  shadow.getElementById('apikey-save').addEventListener('click', async () => {
+    const key = shadow.getElementById('apikey-input').value.trim();
+    const status = shadow.getElementById('apikey-status');
+    if (!key) return;
 
-      try {
-        const res = await fetch('https://backend-production-834fb.up.railway.app/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          showAuthForm(data.error || 'Login failed. Check your credentials.');
-          return;
-        }
-        // Store token and re-run AI audit
-        await chrome.storage.local.set({ auth_token: data.token });
-        resultsEl.innerHTML = '';
-        shadow.getElementById('ai-btn').click();
-      } catch (e) {
-        showAuthForm('Could not reach server. Try again.');
+    // Quick validation — verify key works before saving
+    status.textContent = 'Verifying...';
+    status.style.color = '#737373';
+
+    try {
+      const res = await fetch('https://backend-production-834fb.up.railway.app/api/status', {
+        headers: { 'x-api-key': key }
+      });
+      if (!res.ok) {
+        status.textContent = 'Invalid key — check your key at uxaudit-mu.vercel.app';
+        status.style.color = '#dc2626';
+        return;
       }
-    });
+      await chrome.storage.local.set({ uxcheck_api_key: key });
+      shadow.getElementById('apikey-input').value = '';
+      shadow.getElementById('apikey-input').placeholder = '••••••••••••• (saved)';
+      status.textContent = '✓ API key saved — AI Audit is enabled.';
+      status.style.color = '#16a34a';
+    } catch (e) {
+      status.textContent = 'Could not reach server. Try again.';
+      status.style.color = '#dc2626';
+    }
+  });
 
-    // Allow Enter key to submit
-    shadow.getElementById('auth-password').addEventListener('keydown', e => {
-      if (e.key === 'Enter') shadow.getElementById('auth-submit').click();
-    });
-  }
+  shadow.getElementById('apikey-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') shadow.getElementById('apikey-save').click();
+  });
 
   // ── Export CSV ────────────────────────────────────────────────────────────
   shadow.getElementById('export-csv').addEventListener('click', () => {

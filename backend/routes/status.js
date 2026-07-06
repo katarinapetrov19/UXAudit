@@ -21,6 +21,7 @@ router.get('/', auth, async (req, res, next) => {
       email: req.user.email,
       plan: req.user.plan,
       subscription_status: req.user.subscription_status,
+      api_key: req.user.api_key,
       scans_this_month: currentCount,
       remaining_scans: remaining
     });
