@@ -6,7 +6,7 @@ const FILTER_GROUPS = {
   accessibility: ['ARIA', 'Contrast', 'Headings', 'Landmarks', 'Keyboard'],
   typography:    ['Typography'],
   layout:        ['Hierarchy', 'Responsive', 'Layout'],
-  ux:            ['Heuristics'],
+  ux:            ['Heuristics', 'LawsOfUX'],
   visual:        ['Visual'],
 };
 

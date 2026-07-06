@@ -12,31 +12,44 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
+// Inject keyframe style once
+(function() {
+  if (document.getElementById('__uxcheck_style__')) return;
+  const s = document.createElement('style');
+  s.id = '__uxcheck_style__';
+  s.textContent = `
+    @keyframes __uxcheck_pulse__ {
+      0%   { outline-color: #f97316; box-shadow: 0 0 0 4px rgba(249,115,22,0.4); }
+      50%  { outline-color: #fb923c; box-shadow: 0 0 0 8px rgba(249,115,22,0.1); }
+      100% { outline-color: #f97316; box-shadow: 0 0 0 4px rgba(249,115,22,0.4); }
+    }
+    .__uxcheck_highlight__ {
+      outline: 3px solid #f97316 !important;
+      outline-offset: 3px !important;
+      animation: __uxcheck_pulse__ 0.8s ease-in-out 3 !important;
+      border-radius: 4px !important;
+      transition: none !important;
+    }
+  `;
+  document.documentElement.appendChild(s);
+})();
+
 function highlightElement(selector) {
-  const prev = document.getElementById('__uxcheck_highlight__');
-  if (prev) prev.remove();
+  // Remove previous highlight
+  document.querySelectorAll('.__uxcheck_highlight__').forEach(el => el.classList.remove('__uxcheck_highlight__'));
+
   let el = null;
   try { el = document.querySelector(selector); } catch (e) {}
   if (!el) return;
+
+  // Scroll first, then apply class so element is in view
   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  const overlay = document.createElement('div');
-  overlay.id = '__uxcheck_highlight__';
-  const rect = el.getBoundingClientRect();
-  Object.assign(overlay.style, {
-    position: 'fixed', top: rect.top+'px', left: rect.left+'px',
-    width: rect.width+'px', height: rect.height+'px',
-    outline: '3px solid #f97316', outlineOffset: '2px', borderRadius: '4px',
-    pointerEvents: 'none', zIndex: '2147483647',
-    transition: 'opacity 0.4s', opacity: '1',
-    boxShadow: '0 0 0 4px rgba(249,115,22,0.2)',
-  });
-  document.body.appendChild(overlay);
+
+  // Apply highlight class directly on the element — no positioning math needed
   setTimeout(() => {
-    const r = el.getBoundingClientRect();
-    Object.assign(overlay.style, { top:r.top+'px', left:r.left+'px', width:r.width+'px', height:r.height+'px' });
-  }, 400);
-  setTimeout(() => { overlay.style.opacity = '0'; }, 2500);
-  setTimeout(() => { overlay.remove(); }, 3000);
+    el.classList.add('__uxcheck_highlight__');
+    setTimeout(() => el.classList.remove('__uxcheck_highlight__'), 2500);
+  }, 300); // small delay so scroll settles first
 }
 
 const y = () => new Promise(r => setTimeout(r, 0));
@@ -111,6 +124,7 @@ async function runAudit() {
   await y(); all = all.concat(await safeRunAsync('responsive', () => engine.checkResponsive(document)));
   await y(); all = all.concat(await safeRunAsync('visual',     () => engine.checkVisual(document)));
   await y(); all = all.concat(await safeRunAsync('layout',     () => engine.checkLayout(document)));
+  await y(); all = all.concat(await safeRunAsync('lawsofux',   () => engine.checkLawsOfUX(document)));
 
   // Contrast — run last, small sample, each element gets its own yield
   await y();

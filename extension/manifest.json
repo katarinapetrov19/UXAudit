@@ -42,6 +42,7 @@
         "engine/responsive.js",
         "engine/visual.js",
         "engine/layout.js",
+        "engine/lawsofux.js",
         "content_script.js"
       ]
     }
