@@ -44,7 +44,41 @@ async function safeRunAsync(name, fn) {
   catch (e) { console.warn('UXCheck:', name, e.message); return []; }
 }
 
+const STAMP_ATTR = 'data-uxcheck-id';
+
+function clearStamps() {
+  document.querySelectorAll(`[${STAMP_ATTR}]`).forEach(el => el.removeAttribute(STAMP_ATTR));
+}
+
+function stampIssues(issues) {
+  clearStamps();
+  let counter = 0;
+  issues.forEach(issue => {
+    // Skip issues that don't point to a specific element
+    if (!issue.selector || ['body','head','multiple','title','html',
+        'meta[name="viewport"]','a[target="_blank"]'].includes(issue.selector)) return;
+    if (issue.element === 'multiple') return;
+
+    try {
+      // Try to find the element — skip if selector is ambiguous (matches many)
+      const els = document.querySelectorAll(issue.selector);
+      if (els.length === 0) return;
+
+      const el = els[0];
+      const id = ++counter;
+      el.setAttribute(STAMP_ATTR, id);
+      issue.selector = `[${STAMP_ATTR}="${id}"]`;
+    } catch (e) {
+      // Invalid selector — leave as-is
+    }
+  });
+
+  // Auto-clean stamps after 60s so the page isn't permanently modified
+  setTimeout(clearStamps, 60000);
+}
+
 function finish(issues) {
+  stampIssues(issues);
   const order = { Critical:0, Major:1, Info:2, Minor:3 };
   issues.sort((a,b) => (order[a.severity]??4) - (order[b.severity]??4));
   const report = window.UXCheckEngine.generateReport(issues);
@@ -54,6 +88,7 @@ function finish(issues) {
 
 async function runAudit() {
   console.log('UXCheck: starting');
+  clearStamps(); // remove any stamps from previous audit
   if (!window.UXCheckEngine) { console.error('UXCheck: engine not found'); return; }
   const engine = window.UXCheckEngine;
   let all = [];
