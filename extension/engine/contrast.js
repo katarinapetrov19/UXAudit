@@ -73,18 +73,23 @@ window.UXCheckEngine.checkContrast = (element) => {
   const targetRatio = isLargeText ? 3.0 : 4.5;
 
   if (ratio < targetRatio) {
-    let severity = 'Major';
-    if (ratio < 3.0) severity = 'Critical';
-    else if (ratio < targetRatio) severity = 'Major';
+    let severity;
+    if (ratio < 2.5) {
+      severity = 'Critical'; // Clearly unreadable
+    } else if (ratio < 3.5) {
+      severity = 'Major';    // Noticeably poor
+    } else {
+      severity = 'Minor';    // Close miss — worth noting but not alarming
+    }
 
     return [{
       type: 'Contrast',
-      severity: severity,
+      severity,
       element: element.tagName.toLowerCase(),
       selector: getSelector(element),
-      message: `Low contrast ratio: ${ratio.toFixed(2)}:1. (Target: ${targetRatio}:1 for ${isLargeText ? 'large' : 'normal'} text)`,
+      message: `Contrast ratio ${ratio.toFixed(2)}:1 — target is ${targetRatio}:1 for ${isLargeText ? 'large' : 'normal'} text.`,
       wcagRef: '1.4.3',
-      recommendation: 'Increase the contrast between the text and background colors.'
+      recommendation: 'Increase the contrast between text and background. Use a tool like https://webaim.org/resources/contrastchecker/ to find a passing colour.'
     }];
   }
 
