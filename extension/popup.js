@@ -50,7 +50,7 @@ chrome.runtime.onMessage.addListener((message) => {
     }
 
     // Group issues by severity for display
-    const severities = ['Critical', 'Major', 'Minor', 'Info'];
+    const severities = ['Critical', 'Major', 'Info', 'Minor'];
     let html = '';
 
     severities.forEach(sev => {

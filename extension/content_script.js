@@ -96,7 +96,7 @@ async function runAudit() {
   allIssues = allIssues.concat(safeRun('responsive',  () => engine.checkResponsive(document)));
 
   // Sort by severity
-  const severityOrder = { Critical: 0, Major: 1, Minor: 2, Info: 3 };
+  const severityOrder = { Critical: 0, Major: 1, Info: 2, Minor: 3 };
   allIssues.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
 
   const report = engine.generateReport(allIssues);
