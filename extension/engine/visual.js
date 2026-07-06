@@ -29,7 +29,7 @@ window.UXCheckEngine.checkVisual = async (doc) => {
 
   // ── 1. Spacing off-grid ───────────────────────────────────────────────────
   const spacingEls = Array.from(doc.querySelectorAll('section, article, main, header, footer, p'))
-    .filter(isVisible).slice(0, 60);
+    .filter(isVisible).slice(0, 30);
 
   let offGridCount = 0, totalSpacing = 0;
   spacingEls.forEach(el => {
@@ -108,8 +108,8 @@ window.UXCheckEngine.checkVisual = async (doc) => {
 
   await yield_();
   // ── 4. Too many distinct border-radius values ─────────────────────────────
-  const radiusEls = Array.from(doc.querySelectorAll('button, a, input, [class*="card"], [class*="badge"], [class*="chip"], [class*="tag"], img, div'))
-    .filter(isVisible).slice(0, 100);
+  const radiusEls = Array.from(doc.querySelectorAll('button, a, input, img'))
+    .filter(isVisible).slice(0, 50);
 
   const radii = new Set();
   radiusEls.forEach(el => {
@@ -177,8 +177,8 @@ window.UXCheckEngine.checkVisual = async (doc) => {
 
   await yield_();
   // ── 7. Too many background colors ────────────────────────────────────────
-  const bgEls = Array.from(doc.querySelectorAll('section, div, header, footer, aside, nav, article'))
-    .filter(isVisible).slice(0, 80);
+  const bgEls = Array.from(doc.querySelectorAll('section, header, footer, aside, nav, article'))
+    .filter(isVisible).slice(0, 40);
 
   const bgColors = new Set();
   bgEls.forEach(el => {

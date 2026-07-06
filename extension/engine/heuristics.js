@@ -6,7 +6,7 @@ window.UXCheckEngine.checkHeuristics = (doc) => {
   const issues = [];
 
   // 1. Font size check
-  const allElements = doc.querySelectorAll('p, span, div, li, td');
+  const allElements = Array.from(doc.querySelectorAll('p, li, td')).slice(0, 100);
   const smallFonts = new Set();
   allElements.forEach(el => {
     if (el.children.length === 0 && (el.textContent || '').trim().length > 10) {

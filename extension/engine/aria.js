@@ -60,14 +60,13 @@ window.UXCheckEngine.checkAria = (doc) => {
     ids.add(el.id);
   });
 
-  // 4. Invalid ARIA attributes (basic check)
-  const allElements = doc.querySelectorAll('*');
-  const validAria = ['aria-label', 'aria-labelledby', 'aria-describedby', 'aria-hidden', 'aria-expanded', 'aria-haspopup', 'aria-controls', 'aria-live', 'aria-atomic', 'aria-relevant', 'aria-busy', 'aria-checked', 'aria-disabled', 'aria-grabbed', 'aria-dropeffect', 'aria-invalid', 'aria-selected', 'aria-required', 'aria-autocomplete', 'aria-multiline', 'aria-multiselectable', 'aria-orientation', 'aria-sort', 'aria-valuemax', 'aria-valuemin', 'aria-valuenow', 'aria-valuetext', 'aria-posinset', 'aria-setsize', 'aria-level', 'aria-placeholder', 'aria-modal', 'aria-current', 'aria-details', 'aria-keyshortcuts', 'aria-roledescription'];
-  
-  allElements.forEach(el => {
+  // 4. Invalid ARIA attributes — only check elements that actually have aria- attrs
+  const validAria = new Set(['aria-label', 'aria-labelledby', 'aria-describedby', 'aria-hidden', 'aria-expanded', 'aria-haspopup', 'aria-controls', 'aria-live', 'aria-atomic', 'aria-relevant', 'aria-busy', 'aria-checked', 'aria-disabled', 'aria-grabbed', 'aria-dropeffect', 'aria-invalid', 'aria-selected', 'aria-required', 'aria-autocomplete', 'aria-multiline', 'aria-multiselectable', 'aria-orientation', 'aria-sort', 'aria-valuemax', 'aria-valuemin', 'aria-valuenow', 'aria-valuetext', 'aria-posinset', 'aria-setsize', 'aria-level', 'aria-placeholder', 'aria-modal', 'aria-current', 'aria-details', 'aria-keyshortcuts', 'aria-roledescription']);
+  const ariaEls = Array.from(doc.querySelectorAll('[aria-label],[aria-labelledby],[aria-describedby],[aria-hidden],[aria-expanded],[role]')).slice(0, 100);
+  ariaEls.forEach(el => {
     for (let i = 0; i < el.attributes.length; i++) {
       const attr = el.attributes[i].name;
-      if (attr.startsWith('aria-') && !validAria.includes(attr)) {
+      if (attr.startsWith('aria-') && !validAria.has(attr)) {
         issues.push({
           type: 'ARIA',
           severity: 'Minor',
