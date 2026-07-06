@@ -222,6 +222,29 @@
       text-align: center;
       margin-bottom: 16px;
     }
+
+    .filters {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .filter-btn {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--card-border);
+      background: var(--card-bg);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+
+    .filter-btn:hover { color: var(--text); border-color: rgba(0,0,0,0.2); }
+    .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
   </style>
 </head>
 <body>
@@ -259,6 +282,15 @@
     <div id="export-actions" class="stats" style="display: none; grid-template-columns: 1fr 1fr;">
       <button id="exportPDF" class="button" style="margin-bottom: 0; background-color: var(--card-bg); color: var(--text); border: 1px solid var(--card-border);">Export PDF <span style="font-size: 8px; background: var(--primary); color: white; padding: 1px 5px; border-radius: 999px; vertical-align: middle; margin-left: 4px; font-weight: 600;">PRO</span></button>
       <button id="exportCSV" class="button" style="margin-bottom: 0; background-color: var(--card-bg); color: var(--text); border: 1px solid var(--card-border);">Export CSV <span style="font-size: 8px; background: var(--primary); color: white; padding: 1px 5px; border-radius: 999px; vertical-align: middle; margin-left: 4px; font-weight: 600;">PRO</span></button>
+    </div>
+
+    <div id="filters" class="filters" style="display:none;">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="accessibility">Accessibility</button>
+      <button class="filter-btn" data-filter="typography">Typography</button>
+      <button class="filter-btn" data-filter="layout">Layout</button>
+      <button class="filter-btn" data-filter="ux">UX</button>
+      <button class="filter-btn" data-filter="visual">Visual</button>
     </div>
 
     <div id="results">
