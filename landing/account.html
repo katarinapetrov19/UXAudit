@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UXCheck — Account</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'DM Sans', Arial, sans-serif; }
+        body { background-color: #F2F1ED; color: #0a0a0a; -webkit-font-smoothing: antialiased; }
+    </style>
+</head>
+<body class="bg-[#F2F1ED] text-[#0a0a0a] min-h-screen">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-[#F2F1ED]/80 backdrop-blur-md border-b border-black/[0.08]">
+        <div class="max-w-6xl mx-auto px-6 h-14 grid grid-cols-3 items-center">
+            <a href="/" class="flex items-center gap-2">
+                <span class="font-semibold text-sm tracking-tight">UXCheck</span>
+            </a>
+            <nav class="hidden md:flex justify-center gap-8 text-sm text-neutral-500">
+                <a href="/#features" class="hover:text-black transition-colors">Features</a>
+                <a href="/#pricing" class="hover:text-black transition-colors">Pricing</a>
+                <a href="/tool.html" class="hover:text-black transition-colors">Web Tool</a>
+            </nav>
+            <div class="flex items-center justify-end gap-3">
+                <span id="user-email" class="text-xs text-neutral-400 hidden"></span>
+                <button id="sign-out-btn" class="hidden text-xs text-neutral-500 hover:text-black transition-colors">Sign out</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Auth gate — shown when not logged in -->
+    <div id="auth-gate" class="max-w-sm mx-auto px-6 pt-24">
+        <div class="p-8 rounded-[20px] bg-white/60 border border-black/[0.08]">
+            <h1 class="text-xl font-semibold tracking-tight mb-1">Sign in to your account</h1>
+            <p class="text-sm text-neutral-500 mb-6">Access your API key and usage stats.</p>
+
+            <div id="auth-error" class="hidden text-xs text-red-600 mb-4 p-3 bg-red-50 rounded-xl"></div>
+
+            <div id="login-form">
+                <input id="login-email" type="email" placeholder="Email" class="w-full px-4 py-2.5 rounded-full border border-black/[0.12] bg-white text-sm mb-3 focus:outline-none focus:border-black/30" />
+                <input id="login-password" type="password" placeholder="Password" class="w-full px-4 py-2.5 rounded-full border border-black/[0.12] bg-white text-sm mb-4 focus:outline-none focus:border-black/30" />
+                <button id="login-btn" class="w-full py-2.5 bg-[#0a0a0a] text-white text-sm font-medium rounded-full hover:bg-neutral-700 transition-colors mb-4">Sign in</button>
+                <p class="text-xs text-neutral-400 text-center">No account? <button id="show-register" class="underline hover:text-black transition-colors">Create one free</button></p>
+            </div>
+
+            <div id="register-form" class="hidden">
+                <input id="reg-email" type="email" placeholder="Email" class="w-full px-4 py-2.5 rounded-full border border-black/[0.12] bg-white text-sm mb-3 focus:outline-none focus:border-black/30" />
+                <input id="reg-password" type="password" placeholder="Password" class="w-full px-4 py-2.5 rounded-full border border-black/[0.12] bg-white text-sm mb-4 focus:outline-none focus:border-black/30" />
+                <button id="register-btn" class="w-full py-2.5 bg-[#0a0a0a] text-white text-sm font-medium rounded-full hover:bg-neutral-700 transition-colors mb-4">Create account</button>
+                <p class="text-xs text-neutral-400 text-center">Already have one? <button id="show-login" class="underline hover:text-black transition-colors">Sign in</button></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account dashboard — shown when logged in -->
+    <div id="account-dashboard" class="hidden max-w-2xl mx-auto px-6 pt-16 pb-24">
+        <h1 class="text-3xl font-semibold tracking-tight mb-10">Account</h1>
+
+        <!-- API Key card -->
+        <div class="p-6 rounded-[20px] bg-white/60 border border-black/[0.08] mb-4">
+            <div class="flex items-center justify-between mb-1">
+                <h2 class="font-medium text-sm">API Key</h2>
+                <span class="text-[10px] uppercase tracking-wider text-neutral-400 font-medium">For UXCheck Extension</span>
+            </div>
+            <p class="text-xs text-neutral-500 mb-4">Paste this into the extension settings (⚙ icon) to enable AI Audit.</p>
+            <div class="flex gap-2 items-center">
+                <div class="flex-1 px-4 py-2.5 rounded-full bg-[#F2F1ED] border border-black/[0.08] font-mono text-sm text-neutral-600 overflow-hidden" id="api-key-display">
+                    ux_••••••••••••••••••••••••
+                </div>
+                <button id="reveal-btn" class="px-4 py-2.5 text-xs font-medium rounded-full border border-black/[0.12] hover:bg-white transition-colors whitespace-nowrap">Show</button>
+                <button id="copy-btn" class="px-4 py-2.5 bg-[#0a0a0a] text-white text-xs font-medium rounded-full hover:bg-neutral-700 transition-colors whitespace-nowrap">Copy</button>
+            </div>
+            <p id="copy-confirm" class="text-xs text-green-600 mt-2 hidden">Copied to clipboard!</p>
+        </div>
+
+        <!-- Plan + usage card -->
+        <div class="p-6 rounded-[20px] bg-white/60 border border-black/[0.08] mb-4">
+            <h2 class="font-medium text-sm mb-4">Usage this month</h2>
+            <div class="grid grid-cols-3 gap-4">
+                <div class="text-center p-4 rounded-[14px] bg-[#F2F1ED] border border-black/[0.06]">
+                    <div id="plan-badge" class="text-lg font-semibold tracking-tight">—</div>
+                    <div class="text-[10px] text-neutral-400 uppercase tracking-wider mt-1">Plan</div>
+                </div>
+                <div class="text-center p-4 rounded-[14px] bg-[#F2F1ED] border border-black/[0.06]">
+                    <div id="scans-used" class="text-lg font-semibold tracking-tight">—</div>
+                    <div class="text-[10px] text-neutral-400 uppercase tracking-wider mt-1">Scans used</div>
+                </div>
+                <div class="text-center p-4 rounded-[14px] bg-[#F2F1ED] border border-black/[0.06]">
+                    <div id="scans-remaining" class="text-lg font-semibold tracking-tight">—</div>
+                    <div class="text-[10px] text-neutral-400 uppercase tracking-wider mt-1">AI audits left</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- How to use card -->
+        <div class="p-6 rounded-[20px] bg-white/60 border border-black/[0.08]">
+            <h2 class="font-medium text-sm mb-4">How to connect the extension</h2>
+            <ol class="space-y-3 text-sm text-neutral-500">
+                <li class="flex gap-3"><span class="w-5 h-5 rounded-full bg-[#0a0a0a] text-white text-xs flex items-center justify-center shrink-0 mt-0.5">1</span> Copy your API key above</li>
+                <li class="flex gap-3"><span class="w-5 h-5 rounded-full bg-[#0a0a0a] text-white text-xs flex items-center justify-center shrink-0 mt-0.5">2</span> Open the UXCheck extension on any page</li>
+                <li class="flex gap-3"><span class="w-5 h-5 rounded-full bg-[#0a0a0a] text-white text-xs flex items-center justify-center shrink-0 mt-0.5">3</span> Click the <strong class="text-[#0a0a0a]">⚙</strong> icon in the panel header</li>
+                <li class="flex gap-3"><span class="w-5 h-5 rounded-full bg-[#0a0a0a] text-white text-xs flex items-center justify-center shrink-0 mt-0.5">4</span> Paste your key and click Save — done</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        const API = 'https://backend-production-834fb.up.railway.app';
+        let userData = null;
+
+        // ── Auth state ────────────────────────────────────────────────────────
+        const token = localStorage.getItem('uxcheck_token');
+        if (token) loadDashboard(token);
+
+        async function loadDashboard(token) {
+            try {
+                const res = await fetch(`${API}/api/status`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) { localStorage.removeItem('uxcheck_token'); return; }
+                userData = await res.json();
+                showDashboard();
+            } catch (e) {}
+        }
+
+        function showDashboard() {
+            document.getElementById('auth-gate').classList.add('hidden');
+            document.getElementById('account-dashboard').classList.remove('hidden');
+            document.getElementById('user-email').textContent = userData.email;
+            document.getElementById('user-email').classList.remove('hidden');
+            document.getElementById('sign-out-btn').classList.remove('hidden');
+            document.getElementById('plan-badge').textContent = userData.plan.charAt(0).toUpperCase() + userData.plan.slice(1);
+            document.getElementById('scans-used').textContent = userData.scans_this_month;
+            document.getElementById('scans-remaining').textContent = userData.remaining_scans === 'unlimited' ? '∞' : userData.remaining_scans;
+        }
+
+        // ── Toggle login/register ─────────────────────────────────────────────
+        document.getElementById('show-register').addEventListener('click', () => {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.remove('hidden');
+            document.getElementById('auth-error').classList.add('hidden');
+        });
+        document.getElementById('show-login').addEventListener('click', () => {
+            document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('auth-error').classList.add('hidden');
+        });
+
+        // ── Login ─────────────────────────────────────────────────────────────
+        document.getElementById('login-btn').addEventListener('click', async () => {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            if (!email || !password) return;
+            const btn = document.getElementById('login-btn');
+            btn.textContent = 'Signing in...'; btn.disabled = true;
+            try {
+                const res = await fetch(`${API}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (!res.ok) { showError(data.error || 'Login failed'); btn.textContent = 'Sign in'; btn.disabled = false; return; }
+                localStorage.setItem('uxcheck_token', data.token);
+                userData = { ...data.user, scans_this_month: 0, remaining_scans: '—' };
+                showDashboard();
+                loadDashboard(data.token); // refresh with full stats
+            } catch (e) { showError('Could not reach server'); btn.textContent = 'Sign in'; btn.disabled = false; }
+        });
+
+        // ── Register ──────────────────────────────────────────────────────────
+        document.getElementById('register-btn').addEventListener('click', async () => {
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+            if (!email || !password) return;
+            const btn = document.getElementById('register-btn');
+            btn.textContent = 'Creating account...'; btn.disabled = true;
+            try {
+                const res = await fetch(`${API}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (!res.ok) { showError(data.error || 'Registration failed'); btn.textContent = 'Create account'; btn.disabled = false; return; }
+                // Auto login after register
+                document.getElementById('login-email').value = email;
+                document.getElementById('login-password').value = password;
+                document.getElementById('login-btn').click();
+            } catch (e) { showError('Could not reach server'); btn.textContent = 'Create account'; btn.disabled = false; }
+        });
+
+        // ── Sign out ──────────────────────────────────────────────────────────
+        document.getElementById('sign-out-btn').addEventListener('click', () => {
+            localStorage.removeItem('uxcheck_token');
+            location.reload();
+        });
+
+        // ── API key reveal / copy ─────────────────────────────────────────────
+        let revealed = false;
+        document.getElementById('reveal-btn').addEventListener('click', () => {
+            if (!userData?.api_key) return;
+            revealed = !revealed;
+            document.getElementById('api-key-display').textContent = revealed ? userData.api_key : 'ux_••••••••••••••••••••••••';
+            document.getElementById('reveal-btn').textContent = revealed ? 'Hide' : 'Show';
+        });
+
+        document.getElementById('copy-btn').addEventListener('click', () => {
+            if (!userData?.api_key) return;
+            navigator.clipboard.writeText(userData.api_key).then(() => {
+                const confirm = document.getElementById('copy-confirm');
+                confirm.classList.remove('hidden');
+                setTimeout(() => confirm.classList.add('hidden'), 2000);
+            });
+        });
+
+        function showError(msg) {
+            const el = document.getElementById('auth-error');
+            el.textContent = msg;
+            el.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
