@@ -3,6 +3,13 @@ console.log('UXCheck content script loaded');
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'UXCheck_StartAudit') runAudit();
   if (message.type === 'UXCheck_Highlight') highlightElement(message.selector);
+  if (message.type === 'UXCheck_OpenPDF' && message.report) {
+    const win = window.open('', '_blank');
+    if (win) {
+      win.document.write(window.UXCheckEngine.generatePrintHTML(message.report));
+      win.document.close();
+    }
+  }
 });
 
 function highlightElement(selector) {
