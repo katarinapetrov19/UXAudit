@@ -205,6 +205,13 @@
     }
     .show-btn:hover { background: #333; }
 
+    .ref-link {
+      display: inline-block; margin-top: 5px;
+      font-size: 10px; color: #2563eb; text-decoration: none;
+      font-weight: 500;
+    }
+    .ref-link:hover { text-decoration: underline; }
+
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-thumb { background: #d4d2cc; border-radius: 3px; }
   `;
@@ -302,6 +309,50 @@
   // ── Close ─────────────────────────────────────────────────────────────────
   shadow.getElementById('close-btn').addEventListener('click', () => host.remove());
 
+  // ── Reference links — keyed by issue type + optional wcagRef ────────────
+  const REFS = {
+    // Accessibility
+    'ARIA:1.1.1':       { label: 'WCAG 1.1.1 — Alt text',          url: 'https://www.w3.org/WAI/WCAG21/Understanding/non-text-content' },
+    'ARIA:1.3.1':       { label: 'WCAG 1.3.1 — Info & relationships', url: 'https://www.w3.org/WAI/WCAG21/Understanding/info-and-relationships' },
+    'ARIA:4.1.1':       { label: 'WCAG 4.1.1 — Parsing',            url: 'https://www.w3.org/WAI/WCAG21/Understanding/parsing' },
+    'ARIA:4.1.2':       { label: 'WCAG 4.1.2 — Name, Role, Value',  url: 'https://www.w3.org/WAI/WCAG21/Understanding/name-role-value' },
+    'Contrast:1.4.3':   { label: 'WCAG 1.4.3 — Contrast (Minimum)', url: 'https://webaim.org/resources/contrastchecker/' },
+    'Headings:1.3.1':   { label: 'WCAG 1.3.1 — Heading structure',  url: 'https://www.w3.org/WAI/tutorials/page-structure/headings/' },
+    'Landmarks:1.3.6':  { label: 'WCAG 1.3.6 — Landmarks',         url: 'https://www.w3.org/WAI/ARIA/apg/patterns/landmarks/' },
+    'Keyboard:2.4.3':   { label: 'WCAG 2.4.3 — Focus order',        url: 'https://www.w3.org/WAI/WCAG21/Understanding/focus-order' },
+    'Keyboard:2.1.1':   { label: 'WCAG 2.1.1 — Keyboard',           url: 'https://www.w3.org/WAI/WCAG21/Understanding/keyboard' },
+    'Keyboard:2.4.7':   { label: 'WCAG 2.4.7 — Focus visible',      url: 'https://www.w3.org/WAI/WCAG21/Understanding/focus-visible' },
+    'Heuristics:2.4.4': { label: 'WCAG 2.4.4 — Link purpose',       url: 'https://www.w3.org/WAI/WCAG21/Understanding/link-purpose-in-context' },
+    'Heuristics:2.4.2': { label: 'WCAG 2.4.2 — Page titled',        url: 'https://www.w3.org/WAI/WCAG21/Understanding/page-titled' },
+    // Responsive
+    'Responsive:1.4.4': { label: 'WCAG 1.4.4 — Resize text',        url: 'https://www.w3.org/WAI/WCAG21/Understanding/resize-text' },
+    'Responsive:2.5.8': { label: 'WCAG 2.5.8 — Target size',        url: 'https://www.w3.org/WAI/WCAG21/Understanding/target-size-minimum' },
+    'Responsive:2.5.5': { label: 'WCAG 2.5.5 — Target size (enhanced)', url: 'https://www.w3.org/WAI/WCAG21/Understanding/target-size' },
+    // Layout
+    'Layout:2.4.1':     { label: 'WCAG 2.4.1 — Bypass blocks',      url: 'https://www.w3.org/WAI/WCAG21/Understanding/bypass-blocks' },
+    'Hierarchy:4.1.2':  { label: 'WCAG 4.1.2 — Name, Role, Value',  url: 'https://www.w3.org/WAI/WCAG21/Understanding/name-role-value' },
+    // Visual
+    'Visual:2.3.3':     { label: 'WCAG 2.3.3 — Animation from interactions', url: 'https://www.w3.org/WAI/WCAG21/Understanding/animation-from-interactions' },
+    // Fallbacks by type
+    'Typography':       { label: 'Butterick\'s Practical Typography',  url: 'https://practicaltypography.com/typography-in-ten-minutes.html' },
+    'Visual':           { label: 'Refactoring UI — design tips',       url: 'https://www.refactoringui.com/' },
+    'Heuristics':       { label: 'Nielsen\'s 10 Usability Heuristics', url: 'https://www.nngroup.com/articles/ten-usability-heuristics/' },
+    'Hierarchy':        { label: 'Laws of UX',                         url: 'https://lawsofux.com/' },
+    'Layout':           { label: 'Every Layout — CSS layout patterns',  url: 'https://every-layout.dev/' },
+    'Responsive':       { label: 'Google — Responsive web design basics', url: 'https://web.dev/articles/responsive-web-design-basics' },
+    'Contrast':         { label: 'WebAIM Contrast Checker',            url: 'https://webaim.org/resources/contrastchecker/' },
+    'ARIA':             { label: 'MDN — ARIA basics',                  url: 'https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Accessibility/WAI-ARIA_basics' },
+    'Landmarks':        { label: 'W3C — Page regions',                 url: 'https://www.w3.org/WAI/tutorials/page-structure/regions/' },
+    'Keyboard':         { label: 'WebAIM — Keyboard accessibility',    url: 'https://webaim.org/techniques/keyboard/' },
+    'Headings':         { label: 'W3C — Headings tutorial',            url: 'https://www.w3.org/WAI/tutorials/page-structure/headings/' },
+  };
+
+  function getRef(issue) {
+    const specific = REFS[`${issue.type}:${issue.wcagRef}`];
+    if (specific) return specific;
+    return REFS[issue.type] || null;
+  }
+
   // ── Render helpers ────────────────────────────────────────────────────────
   function matchesFilter(issue) {
     if (currentFilter === 'all') return true;
@@ -342,6 +393,7 @@
               ${issue.wcagRef ? `<div class="detail-row"><span class="detail-key">WCAG:</span> ${issue.wcagRef}</div>` : ''}
               ${issue.recommendation ? `<div class="detail-row" style="margin-top:4px;line-height:1.4;">${issue.recommendation}</div>` : ''}
               ${issue.library ? `<div class="lib-tip"><strong>Library tip:</strong> ${issue.library}</div>` : ''}
+              ${(() => { const ref = getRef(issue); return ref ? `<a class="ref-link" href="${ref.url}" target="_blank" rel="noopener">${ref.label} ↗</a>` : ''; })()}
               ${canShow ? `<button class="show-btn" data-sel="${issue.selector.replace(/"/g,'&quot;')}">Show on page</button>` : ''}
             </div>
           </div>`;
