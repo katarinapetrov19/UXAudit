@@ -1,0 +1,52 @@
+UXCheck - Chrome Web Store Submission Listing
+
+--------------------------------------------------
+Short Description (max 132 characters)
+--------------------------------------------------
+Audit any website for UX and accessibility issues in seconds. Get actionable insights and professional reports in your browser.
+
+--------------------------------------------------
+Long Description
+--------------------------------------------------
+UXCheck is the ultimate browser extension for designers, developers, and QA teams. Instantly audit any live website for common UX pitfalls and accessibility violations.
+
+With one click, UXCheck scans your current page for:
+- WCAG 2.1 Accessibility violations
+- Color contrast issues
+- Heading hierarchy and landmark structure
+- ARIA and semantic errors
+- Keyboard navigation traps
+- Heuristic breakdowns
+
+Stop spending hours on manual audits. UXCheck provides a ranked list of issues, highlights problematic elements on the page, and allows you to export a polished PDF or CSV report for your clients or team.
+
+Perfect for:
+- UX Designers performing quick audits
+- Frontend Developers checking their work
+- Accessibility Consultants (WCAG)
+- Digital Agencies delivering client reports
+
+--------------------------------------------------
+Features
+--------------------------------------------------
+- Instant Audits: Run a full UX/Accessibility scan in seconds on any live site.
+- Visual Highlighting: See exactly where the issues are with on-page element highlighting.
+- Actionable Insights: Get clear explanations and fix suggestions for every detected issue.
+- Professional Reports: Export white-labeled PDF reports to share with stakeholders.
+- Saved History (Pro): Keep track of your audits and monitor improvements over time.
+
+--------------------------------------------------
+Promotional Images (available in /promo-images/)
+--------------------------------------------------
+- Small tile: 440x280 (File: small_tile_440x280.png)
+- Large tile: 920x680 (File: large_tile_920x680.png)
+- Marquee: 1400x560 (File: marquee_1400x560.png)
+
+--------------------------------------------------
+Screenshots (available in /screenshots/)
+--------------------------------------------------
+1. Overview: screenshot1_overview.png
+2. Detailed Issues: screenshot2_details.png
+3. On-Page Highlight: screenshot3_highlight.png
+4. Export Report: screenshot4_export.png
+5. Accessibility Focus: screenshot5_accessibility.png

@@ -28,6 +28,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/status', require('./routes/status'));
 app.use('/api/reports', require('./routes/reports'));
 app.use('/api/webaudit', require('./routes/webaudit'));
+app.use('/api/aiaudit', require('./routes/aiaudit'));
 app.use('/api', stripeRoutes.router); // Covers /create-checkout and /portal
 
 // Health check

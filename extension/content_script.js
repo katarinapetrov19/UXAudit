@@ -3,6 +3,10 @@ console.log('UXCheck content script loaded');
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'UXCheck_Ping') { sendResponse({ ok: true }); return; }
   if (message.type === 'UXCheck_StartAudit') runAudit();
+  if (message.type === 'UXCheck_GetPageStructure') {
+    sendResponse(extractPageStructure());
+    return;
+  }
   if (message.type === 'UXCheck_Highlight') highlightElement(message.selector);
   if (message.type === 'UXCheck_OpenPDF' && message.report) {
     const win = window.open('', '_blank');
@@ -95,6 +99,27 @@ function safeRun(name, fn) {
 async function safeRunAsync(name, fn) {
   try { const r = await fn(); return Array.isArray(r) ? r : []; }
   catch (e) { console.warn('UXCheck:', name, e.message); return []; }
+}
+
+function extractPageStructure() {
+  const getText = el => (el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 120);
+
+  return {
+    url: location.href,
+    title: document.title,
+    metaDescription: document.querySelector('meta[name="description"]')?.getAttribute('content') || '',
+    headings: Array.from(document.querySelectorAll('h1,h2,h3,h4')).slice(0, 20).map(h => ({
+      level: h.tagName.toLowerCase(), text: getText(h)
+    })),
+    navigation: Array.from(document.querySelectorAll('nav a, [role="navigation"] a')).slice(0, 20).map(a => getText(a)).filter(Boolean),
+    ctas: Array.from(document.querySelectorAll('button, input[type="submit"], a[class*="btn"], a[class*="button"]'))
+      .slice(0, 20).map(el => getText(el)).filter(Boolean),
+    forms: Array.from(document.querySelectorAll('form')).slice(0, 5).map(form => ({
+      fields: Array.from(form.querySelectorAll('label, input:not([type="hidden"]), select, textarea')).slice(0, 15).map(el => getText(el)).filter(Boolean)
+    })),
+    paragraphs: Array.from(document.querySelectorAll('p')).slice(0, 10).map(p => getText(p)).filter(t => t.length > 30),
+    images: Array.from(document.querySelectorAll('img[alt]')).slice(0, 10).map(img => img.getAttribute('alt')).filter(Boolean),
+  };
 }
 
 const STAMP_ATTR = 'data-uxcheck-id';

@@ -226,6 +226,7 @@
     </div>
     <div class="body">
       <button class="btn" id="run-btn">Scan Current Page</button>
+      <button class="btn" id="ai-btn" style="background:rgba(0,0,0,0.06);color:#0a0a0a;margin-top:-8px;">✦ AI Audit <span style="font-size:9px;background:#0a0a0a;color:white;padding:1px 5px;border-radius:999px;margin-left:4px;font-weight:600;">PRO</span></button>
       <div class="loader" id="loader">Scanning page...</div>
       <div id="stats" style="display:none;" class="stats">
         <div class="stat-item"><div class="stat-value" id="c-count" style="color:#dc2626">0</div><div class="stat-label">Critical</div></div>
@@ -334,6 +335,7 @@
             <div class="issue-header">
               <span class="badge ${sev}">${sev}</span>
               <span class="issue-type">${issue.type}</span>
+              ${issue.aiGenerated ? '<span style="font-size:9px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;padding:1px 6px;border-radius:999px;margin-left:4px;font-weight:600;">✦ AI</span>' : ''}
             </div>
             <div class="issue-msg">${issue.message}</div>
             <div class="issue-detail">
@@ -442,6 +444,91 @@
       currentReport = response.report;
       shadow.getElementById('run-btn').textContent = 'Run Again';
       showResults();
+    }
+  });
+
+  // ── AI Audit ──────────────────────────────────────────────────────────────
+  shadow.getElementById('ai-btn').addEventListener('click', async () => {
+    const aiBtn = shadow.getElementById('ai-btn');
+    const loader = shadow.getElementById('loader');
+    const resultsEl = shadow.getElementById('results');
+
+    aiBtn.disabled = true;
+    aiBtn.textContent = '✦ Analysing...';
+    loader.style.display = 'block';
+    resultsEl.innerHTML = '';
+
+    try {
+      // Get page structure from content script
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      const pageStructure = await new Promise((resolve, reject) => {
+        chrome.tabs.sendMessage(tab.id, { type: 'UXCheck_GetPageStructure' }, (res) => {
+          if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
+          else resolve(res);
+        });
+      });
+
+      // Get auth token from storage
+      const stored = await chrome.storage.local.get('auth_token');
+      if (!stored.auth_token) {
+        loader.style.display = 'none';
+        resultsEl.innerHTML = `<div class="empty-state" style="color:#d97706;">Sign in to use AI Audit.<br><span style="font-size:11px;color:#737373;display:block;margin-top:6px;">Create a free account at uxaudit-mu.vercel.app</span></div>`;
+        aiBtn.disabled = false;
+        aiBtn.innerHTML = '✦ AI Audit <span style="font-size:9px;background:#0a0a0a;color:white;padding:1px 5px;border-radius:999px;margin-left:4px;font-weight:600;">PRO</span>';
+        return;
+      }
+
+      const res = await fetch('https://backend-production-834fb.up.railway.app/api/aiaudit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${stored.auth_token}`
+        },
+        body: JSON.stringify({ url: pageStructure.url, pageStructure })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        loader.style.display = 'none';
+        resultsEl.innerHTML = `<div class="empty-state" style="color:#dc2626;">${data.error || 'AI audit failed.'}</div>`;
+        aiBtn.disabled = false;
+        aiBtn.innerHTML = '✦ AI Audit <span style="font-size:9px;background:#0a0a0a;color:white;padding:1px 5px;border-radius:999px;margin-left:4px;font-weight:600;">PRO</span>';
+        return;
+      }
+
+      // Merge AI issues into current issues and re-render
+      const aiIssues = (data.issues || []).map(i => ({ ...i, aiGenerated: true }));
+      currentIssues = [...currentIssues.filter(i => !i.aiGenerated), ...aiIssues];
+      currentFilter = 'all';
+      shadow.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === 'all'));
+      shadow.getElementById('filters').style.display = 'flex';
+
+      // Update counts
+      const summary = { critical:0, major:0, minor:0, info:0 };
+      currentIssues.forEach(i => { summary[i.severity.toLowerCase()]++; });
+      shadow.getElementById('c-count').textContent  = summary.critical;
+      shadow.getElementById('m-count').textContent  = summary.major;
+      shadow.getElementById('mn-count').textContent = summary.minor;
+      shadow.getElementById('i-count').textContent  = summary.info;
+      shadow.getElementById('stats').style.display = 'grid';
+
+      loader.style.display = 'none';
+      renderIssues();
+
+      // Show usage
+      if (data.usage) {
+        aiBtn.innerHTML = `✦ AI Audit <span style="font-size:9px;color:#737373;margin-left:4px;">${data.usage.remaining} left</span>`;
+      }
+
+    } catch (err) {
+      loader.style.display = 'none';
+      resultsEl.innerHTML = `<div class="empty-state" style="color:#dc2626;">AI audit error: ${err.message}</div>`;
+    }
+
+    aiBtn.disabled = false;
+    if (!aiBtn.innerHTML.includes('left')) {
+      aiBtn.innerHTML = '✦ AI Audit <span style="font-size:9px;background:#0a0a0a;color:white;padding:1px 5px;border-radius:999px;margin-left:4px;font-weight:600;">PRO</span>';
     }
   });
 
