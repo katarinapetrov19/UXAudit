@@ -24,6 +24,10 @@
 
   const shadow = host.attachShadow({ mode: 'open' });
 
+  // Prevent scroll events from bubbling out to the page
+  host.addEventListener('wheel', e => e.stopPropagation(), { passive: false });
+  host.addEventListener('touchmove', e => e.stopPropagation(), { passive: false });
+
   // ── Styles ───────────────────────────────────────────────────────────────
   const style = document.createElement('style');
   style.textContent = `
